@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthContext'
-import { Logo } from '../components/Layout'
+import { AuthLayout } from '../components/AuthLayout'
 import { Alert, FieldError } from '../components/ui'
 import { isEmail } from '../lib/validation'
 
@@ -12,6 +12,7 @@ export function LoginPage() {
   const location = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [serverError, setServerError] = useState<string | null>(null)
   const [locked, setLocked] = useState(false)
@@ -43,50 +44,61 @@ export function LoginPage() {
   }
 
   return (
-    <div className="auth-screen">
-      <section className="auth-card">
-        <div className="auth-brand">
-          <Logo />
-          <div>
-            <strong>StockSense</strong>
-            <span>Inventario con predicción de demanda</span>
-          </div>
-        </div>
-        <h1>Inicia sesión</h1>
-        {notice && <Alert kind="info">{notice}</Alert>}
-        {serverError && <Alert kind={locked ? 'info' : 'error'}>{serverError}</Alert>}
-        <form onSubmit={submit} noValidate>
-          <label htmlFor="email">Correo</label>
-          <input
-            id="email"
-            type="email"
-            autoComplete="username"
-            inputMode="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            aria-invalid={!!errors.email}
-            aria-describedby={errors.email ? 'email-error' : undefined}
-          />
-          <FieldError id="email-error" message={errors.email} />
+    <AuthLayout>
+      <h1>Iniciar sesión</h1>
+      <p className="auth-lead">Entra para revisar tu inventario.</p>
+      {notice && <Alert kind="info">{notice}</Alert>}
+      {serverError && <Alert kind={locked ? 'info' : 'error'}>{serverError}</Alert>}
+      <form onSubmit={submit} noValidate className="auth-form">
+        <label htmlFor="email">Correo</label>
+        <input
+          id="email"
+          type="email"
+          autoComplete="username"
+          inputMode="email"
+          placeholder="tucorreo@empresa.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          aria-invalid={!!errors.email}
+          aria-describedby={errors.email ? 'email-error' : undefined}
+        />
+        <FieldError id="email-error" message={errors.email} />
 
-          <label htmlFor="password">Contraseña</label>
+        <label htmlFor="password">Contraseña</label>
+        <div className="password-field">
           <input
             id="password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
+            placeholder="Escribe tu contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             aria-invalid={!!errors.password}
             aria-describedby={errors.password ? 'password-error' : undefined}
           />
-          <FieldError id="password-error" message={errors.password} />
-
-          <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
-            {busy ? 'Entrando…' : 'Entrar'}
+          <button
+            type="button"
+            className="password-toggle"
+            onClick={() => setShowPassword((v) => !v)}
+            aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            aria-pressed={showPassword}
+          >
+            {showPassword ? 'Ocultar' : 'Ver'}
           </button>
-        </form>
-        <p className="muted small">¿No tienes cuenta? Pídele a tu administrador que te invite.</p>
-      </section>
-    </div>
+        </div>
+        <FieldError id="password-error" message={errors.password} />
+
+        <p className="auth-forgot">¿Olvidaste tu contraseña? Pídele al administrador que te reenvíe la invitación.</p>
+
+        <button className="btn auth-submit" type="submit" disabled={busy}>
+          {busy ? 'Entrando…' : 'Entrar'}
+        </button>
+      </form>
+      <p className="auth-note">
+        ¿No tienes cuenta?
+        <br />
+        <span>El administrador de tu empresa te envía una invitación por correo.</span>
+      </p>
+    </AuthLayout>
   )
 }

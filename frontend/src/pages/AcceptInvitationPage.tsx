@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
 import { ROLE_LABELS, type Role } from '../api/types'
-import { Logo } from '../components/Layout'
+import { AuthLayout } from '../components/AuthLayout'
 import { Alert, FieldError } from '../components/ui'
 import { isStrong, PASSWORD_RULES } from '../lib/validation'
 
@@ -36,46 +36,41 @@ export function AcceptInvitationPage() {
   }
 
   return (
-    <div className="auth-screen">
-      <section className="auth-card">
-        <div className="auth-brand">
-          <Logo />
-          <div>
-            <strong>StockSense</strong>
-            <span>Activa tu cuenta</span>
-          </div>
-        </div>
+    <AuthLayout>
         {done ? (
           <>
+            <h1>Cuenta activada</h1>
             <Alert kind="success">Listo, tu contraseña quedó guardada.</Alert>
-            <Link className="btn btn-primary btn-block" to="/login">
+            <Link className="btn auth-submit" to="/login">
               Ir a iniciar sesión
             </Link>
           </>
         ) : error ? (
-          <Alert>{error}</Alert>
+          <>
+            <h1>Activa tu cuenta</h1>
+            <Alert>{error}</Alert>
+          </>
         ) : !info ? (
-          <p className="muted">Revisando tu invitación…</p>
+          <p className="auth-lead">Revisando tu invitación…</p>
         ) : (
           <>
             <h1>Hola, {info.fullName}</h1>
-            <p className="muted">
+            <p className="auth-lead">
               Tu rol será <strong>{ROLE_LABELS[info.role]}</strong>. Define una contraseña para {info.email}.
             </p>
-            <form onSubmit={submit} noValidate>
+            <form onSubmit={submit} noValidate className="auth-form">
               <label htmlFor="new-password">Contraseña</label>
               <input id="new-password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
               <p className="hint">{PASSWORD_RULES}</p>
               <label htmlFor="confirm-password">Repite la contraseña</label>
               <input id="confirm-password" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
               <FieldError id="pwd-error" message={fieldError} />
-              <button className="btn btn-primary btn-block" type="submit">
+              <button className="btn auth-submit" type="submit">
                 Guardar contraseña
               </button>
             </form>
           </>
         )}
-      </section>
-    </div>
+    </AuthLayout>
   )
 }

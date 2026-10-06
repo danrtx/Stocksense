@@ -88,24 +88,6 @@ input:disabled { background: #f0ede6; color: var(--muted); }
 .status-invited { background: #fbe6cd; color: var(--accent-ink); }
 .status-disabled { background: #eceae4; color: var(--muted); }
 
-/* Pantalla de acceso */
-.auth-screen {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px 16px;
-  background:
-    radial-gradient(circle at 15% 10%, rgb(224 138 46 / 18%), transparent 40%),
-    linear-gradient(160deg, var(--ink) 0%, #2c3d35 55%, var(--paper) 55.2%);
-}
-.auth-card { width: 100%; max-width: 400px; background: var(--surface); border-radius: 14px; padding: 28px 24px; box-shadow: 0 20px 50px rgb(0 0 0 / 18%); }
-.auth-card h1 { margin-top: 20px; font-size: 1.4rem; }
-.auth-brand { display: flex; gap: 12px; align-items: center; color: var(--ink); }
-.auth-brand .logo { width: 40px; height: 40px; }
-.auth-brand strong { display: block; font-size: 1.1rem; }
-.auth-brand span { color: var(--muted); font-size: 0.85rem; }
-.auth-card .small { margin-top: 16px; text-align: center; }
-
 /* Estructura de la app */
 .shell { display: grid; grid-template-columns: 220px 1fr; grid-template-rows: 60px 1fr; min-height: 100vh; }
 .topbar { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: 0 20px; background: var(--ink); color: #fff; }
