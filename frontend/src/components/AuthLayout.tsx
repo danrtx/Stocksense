@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Logo } from './Layout'
+import { BrandLockup } from './Brand'
 import { WarehouseIllustration } from './WarehouseIllustration'
 
 const YEAR = new Date().getFullYear()
@@ -14,11 +14,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
             <path d="M0 0 H74 C92 14 70 34 84 52 C96 68 80 86 70 100 H0 Z" />
           </svg>
           <div className="auth-brand-mark">
-            <Logo />
-            <div>
-              <strong>StockSense</strong>
-              <span>Inventario inteligente</span>
-            </div>
+            <BrandLockup tagline size={40} />
           </div>
           <div className="auth-illustration">
             <WarehouseIllustration />

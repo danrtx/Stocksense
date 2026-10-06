@@ -1,0 +1,25 @@
+/* Colores del logo. En modo oscuro los costados se aclaran para que la figura no se pierda. */
+.logo-mark { display: block; flex: none; overflow: visible; }
+.lm-side-a { fill: #2a4c3b; }
+.lm-side-b, .lm-rim { fill: #1b3528; }
+.lm-top { fill: #f3efe3; }
+.lm-line { fill: none; stroke: #7ab8a1; stroke-width: 3.8; stroke-linejoin: round; stroke-linecap: round; }
+.lm-arrow-line { fill: none; stroke: #de8f33; stroke-width: 5.5; }
+.lm-arrow { fill: #de8f33; }
+.lm-node { fill: #7ab8a1; }
+.lm-node-start { stroke: #f3efe3; stroke-width: 2.2; }
+
+[data-theme='dark'] .lm-side-a { fill: #4f8a74; }
+[data-theme='dark'] .lm-side-b, [data-theme='dark'] .lm-rim { fill: #3a6b59; }
+
+.brand-lockup { display: inline-flex; align-items: center; gap: calc(var(--lockup-size) * 0.32); color: var(--text); }
+.brand-text { display: flex; flex-direction: column; justify-content: center; line-height: 1; }
+.brand-word { font-size: calc(var(--lockup-size) * 0.56); letter-spacing: 0.01em; white-space: nowrap; }
+.bw-stock { font-weight: 800; color: #1b3528; }
+.bw-sense { font-weight: 500; color: #5fa58c; }
+.brand-tagline { margin-top: calc(var(--lockup-size) * 0.16); font-size: calc(var(--lockup-size) * 0.22); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #2a4c3b; white-space: nowrap; }
+.has-tagline .brand-word { font-size: calc(var(--lockup-size) * 0.8); }
+
+[data-theme='dark'] .bw-stock { color: #e8f2ee; }
+[data-theme='dark'] .bw-sense { color: #7cc3b1; }
+[data-theme='dark'] .brand-tagline { color: #9fb8ae; }

@@ -195,7 +195,6 @@ input:disabled { background: var(--surface-3); color: var(--text-muted); }
   z-index: 30;
 }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.15rem; color: var(--text); text-decoration: none; letter-spacing: 0.01em; }
-.brand .logo { width: 34px; height: 34px; color: var(--forest); }
 .nav-pills { display: flex; gap: 4px; padding: 5px; margin: 0 auto; background: var(--surface-3); border: 1px solid var(--border); border-radius: 999px; overflow-x: auto; scrollbar-width: none; }
 .nav-pills::-webkit-scrollbar { display: none; }
 .nav-pill { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 16px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 0.92rem; color: var(--text-muted); white-space: nowrap; }
@@ -282,7 +281,7 @@ input:disabled { background: var(--surface-3); color: var(--text-muted); }
 /* Celular */
 @media (max-width: 640px) {
   .topbar { top: 8px; margin-bottom: 18px; }
-  .brand span { display: none; }
+  .brand .brand-text { display: none; }
   .topbar-search input { width: 130px; }
   h1 { font-size: 1.35rem; }
   .page-header .btn { width: 100%; }

@@ -4,6 +4,7 @@ import { ROLE_LABELS, type Permission } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { useTheme } from '../theme/ThemeContext'
 import { initials } from '../lib/format'
+import { BrandLockup } from './Brand'
 import { Icon, type IconName } from './Icon'
 
 interface NavItem {
@@ -54,8 +55,7 @@ export function Layout() {
     <div className="app">
       <header className="topbar">
         <Link to="/" className="brand" aria-label="StockSense, ir al panel">
-          <Logo />
-          <span>StockSense</span>
+          <BrandLockup size={34} />
         </Link>
 
         <nav className="nav-pills" aria-label="Secciones">
@@ -193,14 +193,5 @@ function UserMenu({ name, email, role, onLogout }: { name: string; email: string
         </div>
       )}
     </div>
-  )
-}
-
-export function Logo() {
-  return (
-    <svg className="logo" viewBox="0 0 32 32" aria-hidden="true">
-      <rect width="32" height="32" rx="9" fill="currentColor" />
-      <path d="M8 21h4v-6H8zm6 0h4V11h-4zm6 0h4v-9h-4z" fill="#e08a2e" />
-    </svg>
   )
 }
