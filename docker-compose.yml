@@ -33,6 +33,8 @@ services:
     env_file: .env
     environment:
       NODE_ENV: ${APP_ENV:-development}
+      # Si falta, docker compose se detiene antes de arrancar y dice qué hacer.
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET. Copia .env.example como .env (no crees un .env vacío)}
       DATABASE_URL: postgres://${POSTGRES_USER:-stocksense}:${POSTGRES_PASSWORD:-stocksense}@db:5432/${POSTGRES_DB:-stocksense}
       SMTP_HOST: mailpit
       SMTP_PORT: 1025

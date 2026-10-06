@@ -32,6 +32,15 @@ Entra con el administrador que definiste en `.env` (por defecto `admin@stocksens
 
 Para apagar todo: `Ctrl + C` y luego `docker compose down`. Para borrar también la base de datos: `docker compose down -v`.
 
+### Si aparece "Falta JWT_SECRET" o "Configuración inválida"
+
+Tu archivo `.env` está vacío o incompleto. Bórralo y vuelve a copiarlo desde el ejemplo, sin crearlo a mano:
+
+```bash
+copy .env.example .env      # Windows (cmd)
+cp .env.example .env        # Mac, Linux o Git Bash
+```
+
 ### Si aparece "port is already allocated"
 
 Otro programa de tu equipo ya usa ese puerto (por ejemplo, un PostgreSQL instalado usa el 5432). Abre tu `.env`, cambia el puerto que corresponda (`DB_PORT`, `API_PORT`, `WEB_PORT`, `MAIL_UI_PORT` o `MAIL_SMTP_PORT`) y vuelve a correr:
