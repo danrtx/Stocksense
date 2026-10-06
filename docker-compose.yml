@@ -1,6 +1,8 @@
 # Levanta todo el sistema en local con un solo comando:
 #   docker compose up --build
 # Frontend: http://localhost:8080 · API: http://localhost:3000/api · Correos: http://localhost:8025
+# Si algún puerto ya está ocupado en tu equipo, cámbialo en .env (DB_PORT, API_PORT, WEB_PORT,
+# MAIL_UI_PORT, MAIL_SMTP_PORT). Los contenedores siguen hablando entre sí por sus puertos internos.
 name: stocksense
 
 services:
@@ -11,7 +13,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stocksense}
       POSTGRES_DB: ${POSTGRES_DB:-stocksense}
     ports:
-      - "5432:5432"
+      # 5433 por defecto para no chocar con un PostgreSQL instalado en el equipo.
+      - "${DB_PORT:-5433}:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
@@ -22,8 +25,8 @@ services:
   mailpit:
     image: axllent/mailpit:latest
     ports:
-      - "8025:8025"   # bandeja web para ver las invitaciones
-      - "1025:1025"   # SMTP
+      - "${MAIL_UI_PORT:-8025}:8025"   # bandeja web para ver las invitaciones
+      - "${MAIL_SMTP_PORT:-1025}:1025" # SMTP
 
   backend:
     build: ./backend
@@ -33,10 +36,10 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-stocksense}:${POSTGRES_PASSWORD:-stocksense}@db:5432/${POSTGRES_DB:-stocksense}
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
-      FRONTEND_URL: http://localhost:8080
-      CORS_ORIGIN: http://localhost:8080
+      FRONTEND_URL: http://localhost:${WEB_PORT:-8080}
+      CORS_ORIGIN: http://localhost:${WEB_PORT:-8080}
     ports:
-      - "3000:3000"
+      - "${API_PORT:-3000}:3000"
     depends_on:
       db:
         condition: service_healthy
@@ -46,7 +49,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "8080:80"
+      - "${WEB_PORT:-8080}:80"
     depends_on:
       - backend
 

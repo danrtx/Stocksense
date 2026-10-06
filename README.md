@@ -32,6 +32,17 @@ Entra con el administrador que definiste en `.env` (por defecto `admin@stocksens
 
 Para apagar todo: `Ctrl + C` y luego `docker compose down`. Para borrar también la base de datos: `docker compose down -v`.
 
+### Si aparece "port is already allocated"
+
+Otro programa de tu equipo ya usa ese puerto (por ejemplo, un PostgreSQL instalado usa el 5432). Abre tu `.env`, cambia el puerto que corresponda (`DB_PORT`, `API_PORT`, `WEB_PORT`, `MAIL_UI_PORT` o `MAIL_SMTP_PORT`) y vuelve a correr:
+
+```bash
+docker compose down
+docker compose up --build
+```
+
+La base de Docker usa el puerto **5433** en tu equipo para no chocar con un PostgreSQL local. Si te conectas desde DBeaver o pgAdmin, usa `localhost:5433`, usuario y clave `stocksense`.
+
 ## Arrancar sin Docker (para programar)
 
 Necesitas Node.js 22 y PostgreSQL 16 corriendo en tu equipo.
