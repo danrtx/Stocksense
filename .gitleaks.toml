@@ -1,0 +1,11 @@
+# Escaneo de secretos en CI. Los archivos de ejemplo y de pruebas solo
+# tienen valores ficticios, por eso se excluyen.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Archivos con valores de ejemplo"
+paths = [
+  '''(^|/)\.env\.example$''',
+  '''^backend/\.env\.test$''',
+]

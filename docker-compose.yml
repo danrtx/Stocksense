@@ -1,0 +1,54 @@
+# Levanta todo el sistema en local con un solo comando:
+#   docker compose up --build
+# Frontend: http://localhost:8080 · API: http://localhost:3000/api · Correos: http://localhost:8025
+name: stocksense
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-stocksense}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stocksense}
+      POSTGRES_DB: ${POSTGRES_DB:-stocksense}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-stocksense}"]
+      interval: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"   # bandeja web para ver las invitaciones
+      - "1025:1025"   # SMTP
+
+  backend:
+    build: ./backend
+    env_file: .env
+    environment:
+      NODE_ENV: ${APP_ENV:-development}
+      DATABASE_URL: postgres://${POSTGRES_USER:-stocksense}:${POSTGRES_PASSWORD:-stocksense}@db:5432/${POSTGRES_DB:-stocksense}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      FRONTEND_URL: http://localhost:8080
+      CORS_ORIGIN: http://localhost:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  db-data:

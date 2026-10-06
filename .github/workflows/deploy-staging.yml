@@ -1,0 +1,62 @@
+# Despliegue continuo al ambiente de pruebas (staging).
+# Corre solo cuando CI pasa en la rama main. Publica las imágenes en
+# GitHub Container Registry y luego avisa al servidor de staging.
+name: Deploy staging
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Nombre de las imágenes en minúsculas
+        run: echo "IMAGE_PREFIX=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-backend:staging
+            ${{ env.IMAGE_PREFIX }}-backend:${{ github.event.workflow_run.head_sha }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-frontend:staging
+            ${{ env.IMAGE_PREFIX }}-frontend:${{ github.event.workflow_run.head_sha }}
+
+      # El proveedor (Render, Railway, un VPS con webhook, etc.) se define al
+      # crear el ambiente. Configura el secreto STAGING_DEPLOY_HOOK en
+      # Settings > Environments > staging. Sin él, el paso se omite con un aviso.
+      - name: Avisar al servidor de staging
+        env:
+          HOOK: ${{ secrets.STAGING_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::warning::STAGING_DEPLOY_HOOK no está configurado: las imágenes se publicaron pero no se desplegaron."
+            exit 0
+          fi
+          curl --fail --silent --show-error -X POST "$HOOK"
