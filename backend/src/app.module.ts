@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuditModule } from './audit/audit.module';
 import { AuthGuard } from './auth/auth.guard';
 import { AuthModule } from './auth/auth.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { PermissionsGuard } from './common/auth/permissions.guard';
 import { RolesController } from './common/auth/roles.controller';
 import { envFilePaths } from './config/env-files';
@@ -36,6 +37,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     UsersModule,
     ProductsModule,
+    DashboardModule,
   ],
   controllers: [HealthController, RolesController],
   providers: [

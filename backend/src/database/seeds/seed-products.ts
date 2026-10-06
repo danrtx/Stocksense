@@ -17,7 +17,12 @@ async function seedProducts() {
               || ' ' || (ARRAY['estándar','reforzado','galvanizado','industrial','premium'])[1 + g % 5]
               || ' #' || g,
             'Producto de demostración',
-            (SELECT id FROM categories ORDER BY name OFFSET (g % (SELECT count(*) FROM categories)) LIMIT 1),
+            -- Reparto desigual entre categorías para que los gráficos se parezcan a un negocio real
+            (SELECT id FROM categories ORDER BY name
+             OFFSET (CASE WHEN g % 100 < 28 THEN 1 WHEN g % 100 < 48 THEN 0 WHEN g % 100 < 63 THEN 4
+                          WHEN g % 100 < 75 THEN 3 WHEN g % 100 < 85 THEN 2 WHEN g % 100 < 92 THEN 7
+                          WHEN g % 100 < 97 THEN 6 ELSE 5 END) % (SELECT count(*) FROM categories)
+             LIMIT 1),
             (ARRAY['UND','KG','L','M','CAJA'])[1 + g % 5]::unit_of_measure,
             round((random() * 200000 + 500)::numeric, 2)
      FROM generate_series(1, $1) AS g

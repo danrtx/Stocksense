@@ -31,15 +31,15 @@ export function WarehouseIllustration() {
       <circle className="wh-bubble b3" cx="96" cy="300" r="8" fill="#cfe7de" />
 
       {/* Piso */}
-      <ellipse cx="220" cy="318" rx="185" ry="16" fill="#c4ded4" />
+      <ellipse className="wh-floor" cx="220" cy="318" rx="185" ry="16" fill="#c4ded4" />
 
       {/* Estantería */}
       <g className="wh-shelf">
-        <rect x="70" y="92" width="8" height="226" rx="2" fill="#2f5a4b" />
-        <rect x="228" y="92" width="8" height="226" rx="2" fill="#2f5a4b" />
-        <rect x="66" y="150" width="174" height="7" rx="2" fill="#3d6e5c" />
-        <rect x="66" y="216" width="174" height="7" rx="2" fill="#3d6e5c" />
-        <rect x="66" y="282" width="174" height="7" rx="2" fill="#3d6e5c" />
+        <rect className="wh-post" x="70" y="92" width="8" height="226" rx="2" fill="#2f5a4b" />
+        <rect className="wh-post" x="228" y="92" width="8" height="226" rx="2" fill="#2f5a4b" />
+        <rect className="wh-board" x="66" y="150" width="174" height="7" rx="2" fill="#3d6e5c" />
+        <rect className="wh-board" x="66" y="216" width="174" height="7" rx="2" fill="#3d6e5c" />
+        <rect className="wh-board" x="66" y="282" width="174" height="7" rx="2" fill="#3d6e5c" />
 
         {/* Fila superior */}
         <use href="#wh-crate" x="86" y="118" width="40" height="32" />
@@ -91,25 +91,25 @@ export function WarehouseIllustration() {
 
       {/* Tarjeta de pronóstico */}
       <g className="wh-forecast">
-        <rect x="262" y="40" width="150" height="104" rx="14" fill="#ffffff" />
-        <rect x="262" y="40" width="150" height="104" rx="14" fill="none" stroke="#d6e9e1" />
-        <rect x="276" y="54" width="54" height="7" rx="3.5" fill="#24473b" />
+        <rect className="wh-card" x="262" y="40" width="150" height="104" rx="14" fill="#ffffff" />
+        <rect className="wh-card-line" x="262" y="40" width="150" height="104" rx="14" fill="none" stroke="#d6e9e1" />
+        <rect className="wh-ink" x="276" y="54" width="54" height="7" rx="3.5" fill="#24473b" />
         <rect x="276" y="66" width="34" height="5" rx="2.5" fill="#b9d3c9" />
         <g className="wh-bars">
-          <rect className="bar" x="278" y="104" width="12" height="26" rx="2" fill="#a9d8cb" />
-          <rect className="bar" x="296" y="96" width="12" height="34" rx="2" fill="#a9d8cb" />
-          <rect className="bar" x="314" y="100" width="12" height="30" rx="2" fill="#7cc3b1" />
-          <rect className="bar" x="332" y="88" width="12" height="42" rx="2" fill="#7cc3b1" />
-          <rect className="bar bar-pred" x="350" y="80" width="12" height="50" rx="2" fill="#e08a2e" opacity="0.85" />
-          <rect className="bar bar-pred" x="368" y="72" width="12" height="58" rx="2" fill="#e08a2e" opacity="0.85" />
+          <rect className="wh-bar" x="278" y="104" width="12" height="26" rx="2" fill="#a9d8cb" />
+          <rect className="wh-bar" x="296" y="96" width="12" height="34" rx="2" fill="#a9d8cb" />
+          <rect className="wh-bar" x="314" y="100" width="12" height="30" rx="2" fill="#7cc3b1" />
+          <rect className="wh-bar" x="332" y="88" width="12" height="42" rx="2" fill="#7cc3b1" />
+          <rect className="wh-bar wh-bar-pred" x="350" y="80" width="12" height="50" rx="2" fill="#e08a2e" opacity="0.85" />
+          <rect className="wh-bar wh-bar-pred" x="368" y="72" width="12" height="58" rx="2" fill="#e08a2e" opacity="0.85" />
         </g>
-        <path className="wh-trend" d="M284 98 L302 90 L320 92 L338 80 L356 72 L374 62 L392 56" fill="none" stroke="#24473b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path className="wh-trend wh-ink-stroke" d="M284 98 L302 90 L320 92 L338 80 L356 72 L374 62 L392 56" fill="none" stroke="#24473b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
         <circle className="wh-dot" cx="392" cy="56" r="4" fill="#e08a2e" />
       </g>
 
       {/* Etiqueta de alerta de stock */}
       <g className="wh-tag">
-        <rect x="6" y="176" width="58" height="26" rx="13" fill="#24473b" />
+        <rect className="wh-tag-bg" x="6" y="176" width="58" height="26" rx="13" fill="#24473b" />
         <circle cx="22" cy="189" r="5" fill="#e08a2e" />
         <rect x="32" y="186" width="24" height="6" rx="3" fill="#cfe7de" />
       </g>

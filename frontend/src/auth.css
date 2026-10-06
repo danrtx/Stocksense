@@ -4,6 +4,9 @@
   --forest-ink: #e8f2ee;
   --mint: #7cc3b1;
   --mint-soft: #dcefe8;
+  --art-bg: #f7fbf9;
+  --art-text: #24473b;
+  --art-muted: #5b7a6f;
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--forest);
@@ -34,18 +37,18 @@
   inset: 0;
   width: 118%;
   height: 100%;
-  fill: #f7fbf9;
+  fill: var(--art-bg);
   z-index: 0;
 }
 .auth-art > *:not(.auth-curve) { position: relative; z-index: 1; }
 .auth-brand-mark { display: flex; align-items: center; gap: 12px; }
-.auth-brand-mark .logo { width: 42px; height: 42px; color: var(--forest); }
-.auth-brand-mark strong { display: block; font-size: 1.15rem; color: var(--forest); letter-spacing: 0.01em; }
-.auth-brand-mark span { font-size: 0.85rem; color: #5b7a6f; }
+.auth-brand-mark .logo { width: 42px; height: 42px; color: #24473b; }
+.auth-brand-mark strong { display: block; font-size: 1.15rem; color: var(--art-text); letter-spacing: 0.01em; }
+.auth-brand-mark span { font-size: 0.85rem; color: var(--art-muted); }
 .auth-illustration { flex: 1; display: grid; place-items: center; padding: 8px 6% 0 0; }
 .auth-illustration .wh { width: 100%; max-width: min(780px, 86%); max-height: 64vh; height: auto; overflow: visible; }
-.auth-tagline { margin: 4px 0 18px; font-size: clamp(1.05rem, 1.4vw, 1.4rem); font-weight: 600; color: var(--forest); max-width: 70%; line-height: 1.35; }
-.auth-foot-left { font-size: 0.74rem; color: #6a8279; line-height: 1.4; }
+.auth-tagline { margin: 4px 0 18px; font-size: clamp(1.05rem, 1.4vw, 1.4rem); font-weight: 600; color: var(--art-text); max-width: 70%; line-height: 1.35; }
+.auth-foot-left { font-size: 0.74rem; color: var(--art-muted); line-height: 1.4; }
 
 /* Lado derecho */
 .auth-panel {
@@ -115,6 +118,23 @@
 .auth-foot-right { margin-top: 24px; text-align: right; font-size: 0.74rem; color: #9fc0b4; line-height: 1.4; }
 .auth-panel .alert { border-radius: 12px; }
 
+/* Modo oscuro: la zona de la ilustración también se oscurece */
+[data-theme='dark'] .auth-page {
+  --art-bg: #16241f;
+  --art-text: #e8f2ee;
+  --art-muted: #9fb8ae;
+}
+[data-theme='dark'] .wh-glow { fill: #1f3a31; }
+[data-theme='dark'] .wh-floor, [data-theme='dark'] .wh-bubble { fill: #24413a; }
+[data-theme='dark'] .wh-post { fill: #4f8a74; }
+[data-theme='dark'] .wh-board { fill: #5d9a83; }
+[data-theme='dark'] .wh-card { fill: #1d2f28; }
+[data-theme='dark'] .wh-card-line { stroke: #2a3f37; }
+[data-theme='dark'] .wh-ink { fill: #e8f2ee; }
+[data-theme='dark'] .wh-ink-stroke { stroke: #e8f2ee; }
+[data-theme='dark'] .wh-tag-bg { fill: #2f5a4b; }
+[data-theme='dark'] .auth-brand-mark .logo { color: #2f5a4b; }
+
 /* Animaciones de la ilustración */
 .wh * { transform-box: fill-box; }
 .wh-glow { animation: glow 8s ease-in-out infinite; transform-origin: center; }
@@ -128,12 +148,12 @@
 .wh-fork { animation: lift 7s ease-in-out infinite; }
 .wh-wheel { transform-box: view-box; animation: roll 7s ease-in-out infinite; }
 .wh-forecast { animation: hover-card 6s ease-in-out infinite; }
-.wh-bars .bar { transform-origin: bottom; animation: grow 3.6s ease-in-out infinite; }
-.wh-bars .bar:nth-child(2) { animation-delay: 0.12s; }
-.wh-bars .bar:nth-child(3) { animation-delay: 0.24s; }
-.wh-bars .bar:nth-child(4) { animation-delay: 0.36s; }
-.wh-bars .bar:nth-child(5) { animation-delay: 0.48s; }
-.wh-bars .bar:nth-child(6) { animation-delay: 0.6s; }
+.wh-bars .wh-bar { transform-origin: bottom; animation: grow 3.6s ease-in-out infinite; }
+.wh-bars .wh-bar:nth-child(2) { animation-delay: 0.12s; }
+.wh-bars .wh-bar:nth-child(3) { animation-delay: 0.24s; }
+.wh-bars .wh-bar:nth-child(4) { animation-delay: 0.36s; }
+.wh-bars .wh-bar:nth-child(5) { animation-delay: 0.48s; }
+.wh-bars .wh-bar:nth-child(6) { animation-delay: 0.6s; }
 .wh-trend { stroke-dasharray: 140; animation: draw 3.6s ease-in-out infinite; }
 .wh-dot { transform-origin: center; animation: dot-pulse 3.6s ease-in-out infinite; }
 .wh-tag { animation: tag-sway 5s ease-in-out infinite; }
@@ -177,7 +197,7 @@
 /* Celular: ilustración arriba, formulario abajo */
 @media (max-width: 720px) {
   .auth-shell { grid-template-columns: 1fr; }
-  .auth-art { padding: 20px 20px 0; background: #f7fbf9; border-radius: 0 0 32px 32px; }
+  .auth-art { padding: 20px 20px 0; background: var(--art-bg); border-radius: 0 0 32px 32px; }
   .auth-curve { display: none; }
   .auth-illustration { padding: 0; }
   .auth-illustration .wh { max-width: 300px; }

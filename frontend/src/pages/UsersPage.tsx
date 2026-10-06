@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { api, ApiError, query, type Page } from '../api/client'
 import { ROLE_LABELS, STATUS_LABELS, type Role, type UserRow } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
@@ -16,6 +17,15 @@ export function UsersPage() {
   const [page, setPage] = useState(1)
   const [editing, setEditing] = useState<UserRow | 'new' | null>(null)
   const [message, setMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null)
+  const [params, setParams] = useSearchParams()
+  const wantsInvite = params.get('invitar') === '1'
+
+  // Acceso rápido "Invitar usuario" (?invitar=1)
+  useEffect(() => {
+    if (!wantsInvite) return
+    setEditing('new')
+    setParams({}, { replace: true })
+  }, [wantsInvite, setParams])
 
   const load = useCallback(() => {
     api<Page<UserRow>>(`/users${query({ q, role, page, limit: 20 })}`)

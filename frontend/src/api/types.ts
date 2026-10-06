@@ -87,3 +87,11 @@ export const UNIT_LABELS: Record<Unit, string> = {
   CAJA: 'Caja',
   PAQ: 'Paquete',
 }
+
+export interface DashboardSummary {
+  catalog: { active: number; inactive: number; categories: number; createdLast7Days: number; averageCost?: number | null }
+  byCategory: { id: string; name: string; count: number; averageCost?: number | null }[]
+  recentProducts: { id: string; sku: string; name: string; unit: Unit; cost?: number; createdAt: string; category: string }[]
+  team?: { active: number; invited: number; locked: number; members: { id: string; fullName: string; role: Role }[] }
+  activity?: AuditItem[]
+}

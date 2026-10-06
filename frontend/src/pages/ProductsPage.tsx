@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { api, ApiError, query, type Page } from '../api/client'
 import { UNIT_LABELS, type Category, type Product, type Unit } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
@@ -14,13 +15,33 @@ export function ProductsPage() {
   const canSeeCost = can('products:cost:read')
   const [categories, setCategories] = useState<Category[]>([])
   const [data, setData] = useState<Page<Product> | null>(null)
-  const [q, setQ] = useState('')
+  const [params, setParams] = useSearchParams()
+  const [q, setQ] = useState(() => params.get('q') ?? '')
   const [categoryId, setCategoryId] = useState('')
   const [active, setActive] = useState('true')
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
   const [editing, setEditing] = useState<Product | 'new' | null>(null)
   const [message, setMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null)
+
+  // Búsqueda desde la barra superior (?q=) y acceso rápido "Nuevo producto" (?nuevo=1)
+  const urlQuery = params.get('q')
+  const wantsNew = params.get('nuevo') === '1'
+  useEffect(() => {
+    if (urlQuery !== null) {
+      setQ(urlQuery)
+      setPage(1)
+    }
+  }, [urlQuery])
+  useEffect(() => {
+    if (!wantsNew) return
+    if (canWrite) setEditing('new')
+    setParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.delete('nuevo')
+      return next
+    }, { replace: true })
+  }, [wantsNew, canWrite, setParams])
 
   useEffect(() => {
     api<Category[]>('/categories').then(setCategories).catch(() => undefined)

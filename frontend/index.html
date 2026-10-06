@@ -4,7 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#1f2b26" />
+    <meta name="theme-color" content="#f5f2eb" />
+    <script>
+      // Aplica el modo claro u oscuro antes de pintar para evitar un destello.
+      try {
+        var t = localStorage.getItem('stocksense.theme')
+        if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        document.documentElement.dataset.theme = t
+      } catch (e) {}
+    </script>
     <title>StockSense</title>
   </head>
   <body>

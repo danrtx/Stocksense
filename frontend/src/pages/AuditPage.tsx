@@ -1,39 +1,9 @@
 import { useEffect, useState } from 'react'
 import { api, ApiError, query, type Page } from '../api/client'
 import type { AuditItem } from '../api/types'
+import { ACTION_LABELS, describeChanges as describe } from '../lib/audit'
 import { formatDate } from '../lib/format'
 import { Alert, PageHeader, Pagination } from '../components/ui'
-
-const ACTION_LABELS: Record<string, string> = {
-  'auth.login': 'Inicio de sesión',
-  'auth.logout': 'Cierre de sesión',
-  'auth.locked': 'Cuenta bloqueada',
-  'user.created': 'Usuario creado',
-  'user.updated': 'Usuario editado',
-  'user.role_changed': 'Cambio de rol',
-  'user.deactivated': 'Usuario desactivado',
-  'user.reactivated': 'Usuario reactivado',
-  'user.invitation_sent': 'Invitación enviada',
-  'user.invitation_accepted': 'Invitación aceptada',
-  'product.created': 'Producto creado',
-  'product.updated': 'Producto editado',
-  'product.deactivated': 'Producto desactivado',
-  'product.reactivated': 'Producto reactivado',
-  'category.created': 'Categoría creada',
-}
-
-function describe(changes: AuditItem['changes']): string {
-  if (!changes) return ''
-  return Object.entries(changes)
-    .map(([key, value]) => {
-      if (value && typeof value === 'object' && 'from' in value && 'to' in value) {
-        const v = value as { from: unknown; to: unknown }
-        return `${key}: ${String(v.from)} → ${String(v.to)}`
-      }
-      return `${key}: ${typeof value === 'object' ? JSON.stringify(value) : String(value)}`
-    })
-    .join(' · ')
-}
 
 export function AuditPage() {
   const [data, setData] = useState<Page<AuditItem> | null>(null)

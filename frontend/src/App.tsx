@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
+import { ThemeProvider } from './theme/ThemeContext'
 import { RequireAuth, RequirePermission } from './auth/guards'
 import { Layout } from './components/Layout'
 import { ComingSoon } from './pages/AccessDenied'
@@ -12,6 +13,7 @@ import { UsersPage } from './pages/UsersPage'
 
 export default function App() {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <BrowserRouter>
         <Routes>
@@ -29,5 +31,6 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </ThemeProvider>
   )
 }
