@@ -8,10 +8,6 @@ const YEAR = new Date().getFullYear()
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="auth-page">
-      <span className="auth-orb orb-1" aria-hidden="true" />
-      <span className="auth-orb orb-2" aria-hidden="true" />
-      <span className="auth-orb orb-3" aria-hidden="true" />
-
       <div className="auth-shell">
         <section className="auth-art" aria-label="StockSense">
           <svg className="auth-curve" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
