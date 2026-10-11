@@ -130,7 +130,7 @@
 [data-theme='dark'] .wh-ink { fill: #e8f2ee; }
 [data-theme='dark'] .wh-ink-stroke { stroke: #e8f2ee; }
 [data-theme='dark'] .wh-tag-bg { fill: #2f5a4b; }
-[data-theme='dark'] 
+
 /* Animaciones de la ilustración */
 .wh * { transform-box: fill-box; }
 .wh-glow { animation: glow 8s ease-in-out infinite; transform-origin: center; }
@@ -142,7 +142,11 @@
 .wh-scan { animation: scan 3.2s ease-in-out infinite; }
 .wh-forklift { animation: drive 7s ease-in-out infinite; }
 .wh-fork { animation: lift 7s ease-in-out infinite; }
-.wh-wheel { transform-box: view-box; animation: roll 7s ease-in-out infinite; }
+/* La llanta gira sobre su propio centro y solo lo que corresponde a la distancia recorrida:
+   20 unidades de avance ÷ radio = ángulo (r=14 → 82°, r=12 → 95°). */
+.wh-wheel { transform-box: fill-box; transform-origin: center; }
+.wh-wheel-lg { animation: roll-lg 7s ease-in-out infinite; }
+.wh-wheel-sm { animation: roll-sm 7s ease-in-out infinite; }
 .wh-forecast { animation: hover-card 6s ease-in-out infinite; }
 .wh-bars .wh-bar { transform-origin: bottom; animation: grow 3.6s ease-in-out infinite; }
 .wh-bars .wh-bar:nth-child(2) { animation-delay: 0.12s; }
@@ -159,9 +163,10 @@
 @keyframes count-bob { 0%, 55%, 100% { transform: translateY(0); } 65% { transform: translateY(-5px); } 75% { transform: translateY(0); } }
 @keyframes check-pop { 0%, 60% { transform: scale(0); opacity: 0; } 72% { transform: scale(1.15); opacity: 1; } 80%, 92% { transform: scale(1); opacity: 1; } 100% { transform: scale(0); opacity: 0; } }
 @keyframes scan { 0% { transform: translateY(0); opacity: 0; } 8% { opacity: 1; } 55% { transform: translateY(170px); opacity: 1; } 62%, 100% { transform: translateY(170px); opacity: 0; } }
-@keyframes drive { 0%, 100% { transform: translateX(0); } 40%, 60% { transform: translateX(-16px); } }
+@keyframes drive { 0%, 100% { transform: translateX(0); } 40%, 60% { transform: translateX(-20px); } }
 @keyframes lift { 0%, 38% { transform: translateY(0); } 50%, 62% { transform: translateY(-26px); } 74%, 100% { transform: translateY(0); } }
-@keyframes roll { 0%, 100% { transform: rotate(0deg); } 40%, 60% { transform: rotate(-280deg); } }
+@keyframes roll-lg { 0%, 100% { transform: rotate(0deg); } 40%, 60% { transform: rotate(-82deg); } }
+@keyframes roll-sm { 0%, 100% { transform: rotate(0deg); } 40%, 60% { transform: rotate(-95deg); } }
 @keyframes hover-card { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 @keyframes grow { 0%, 100% { transform: scaleY(0.35); } 45%, 80% { transform: scaleY(1); } }
 @keyframes draw { 0%, 15% { stroke-dashoffset: 140; } 55%, 85% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 140; } }

@@ -77,15 +77,17 @@ export function WarehouseIllustration() {
         <path d="M284 282 h72 v-44 h-22 l-16 -26 h-26 z" fill="#e08a2e" />
         <rect x="292" y="218" width="24" height="22" rx="3" fill="#fbe6cd" opacity="0.85" />
         <rect x="280" y="270" width="80" height="16" rx="5" fill="#c9762a" />
-        <g className="wh-wheel" style={{ transformOrigin: '302px 298px' }}>
+        <g className="wh-wheel wh-wheel-lg">
           <circle cx="302" cy="298" r="14" fill="#1f2b26" />
-          <circle cx="302" cy="298" r="5" fill="#9fb3aa" />
-          <rect x="300.5" y="285" width="3" height="8" fill="#9fb3aa" />
+          <rect x="300.5" y="287" width="3" height="22" rx="1.5" fill="#9fb3aa" />
+          <rect x="291" y="296.5" width="22" height="3" rx="1.5" fill="#9fb3aa" />
+          <circle cx="302" cy="298" r="4.5" fill="#9fb3aa" />
         </g>
-        <g className="wh-wheel" style={{ transformOrigin: '344px 300px' }}>
+        <g className="wh-wheel wh-wheel-sm">
           <circle cx="344" cy="300" r="12" fill="#1f2b26" />
-          <circle cx="344" cy="300" r="4.5" fill="#9fb3aa" />
-          <rect x="342.5" y="289" width="3" height="7" fill="#9fb3aa" />
+          <rect x="342.5" y="290.5" width="3" height="19" rx="1.5" fill="#9fb3aa" />
+          <rect x="334.5" y="298.5" width="19" height="3" rx="1.5" fill="#9fb3aa" />
+          <circle cx="344" cy="300" r="4" fill="#9fb3aa" />
         </g>
       </g>
 
