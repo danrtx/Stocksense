@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { api, ApiError, query, type Page } from '../api/client'
 import { UNIT_LABELS, type Category, type Product, type Unit } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
-import { Alert, FieldError, Modal, PageHeader, Pagination } from '../components/ui'
-import { formatMoney } from '../lib/format'
+import { Alert, FieldError, InfoTip, Modal, PageHeader, Pagination } from '../components/ui'
+import { formatMoney, formatQty } from '../lib/format'
 import { validateProduct } from '../lib/validation'
+import { REORDER_FORMULA, validateReorder } from '../lib/labels'
 
 const UNITS = Object.keys(UNIT_LABELS) as Unit[]
 
@@ -22,6 +23,7 @@ export function ProductsPage() {
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
   const [editing, setEditing] = useState<Product | 'new' | null>(null)
+  const [bulk, setBulk] = useState(false)
   const [message, setMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null)
 
   // Búsqueda desde la barra superior (?q=) y acceso rápido "Nuevo producto" (?nuevo=1)
@@ -75,7 +77,15 @@ export function ProductsPage() {
       <PageHeader
         title="Productos"
         subtitle={data ? `${data.total.toLocaleString('es-CO')} productos` : 'Catálogo'}
-        actions={canWrite && <button className="btn btn-primary" onClick={() => setEditing('new')}>Nuevo producto</button>}
+        actions={
+          canWrite && (
+            <>
+              <button className="btn btn-ghost" onClick={() => setBulk(true)}>Punto de reorden por categoría</button>
+              <Link className="btn btn-ghost" to="/productos/importar">Importar CSV</Link>
+              <button className="btn btn-primary" onClick={() => setEditing('new')}>Nuevo producto</button>
+            </>
+          )
+        }
       />
       {message && <Alert kind={message.kind}>{message.text}</Alert>}
       <div className="filters">
@@ -100,6 +110,7 @@ export function ProductsPage() {
               <th>Categoría</th>
               <th>Unidad</th>
               {canSeeCost && <th className="num">Costo</th>}
+              <th className="num">Punto de reorden</th>
               {canWrite && <th aria-label="Acciones" />}
             </tr>
           </thead>
@@ -108,12 +119,13 @@ export function ProductsPage() {
               <tr key={p.id} className={p.isActive ? '' : 'is-inactive'}>
                 <td data-label="SKU"><code>{p.sku}</code></td>
                 <td data-label="Nombre">
-                  {p.name}
+                  <Link to={`/productos/${p.id}`} className="row-link">{p.name}</Link>
                   {!p.isActive && <span className="tag">Desactivado</span>}
                 </td>
                 <td data-label="Categoría">{p.category?.name}</td>
                 <td data-label="Unidad">{UNIT_LABELS[p.unit]}</td>
                 {canSeeCost && <td data-label="Costo" className="num">{formatMoney(p.cost)}</td>}
+                <td data-label="Punto de reorden" className="num">{formatQty(p.reorderPoint)}</td>
                 {canWrite && (
                   <td className="row-actions">
                     <button className="btn btn-ghost" onClick={() => setEditing(p)}>Editar</button>
@@ -131,6 +143,18 @@ export function ProductsPage() {
         )}
       </div>
       {data && <Pagination page={data.page} pages={data.pages ?? 1} onPage={setPage} />}
+
+      {bulk && (
+        <BulkReorder
+          categories={categories}
+          onClose={() => setBulk(false)}
+          onSaved={(text) => {
+            setBulk(false)
+            setMessage({ kind: 'success', text })
+            load()
+          }}
+        />
+      )}
 
       {editing && (
         <ProductForm
@@ -250,6 +274,75 @@ function ProductForm({ product, categories, onCategoryCreated, onClose, onSaved 
         <div className="modal-actions span-2">
           <button type="button" className="btn btn-ghost" onClick={onClose}>Cancelar</button>
           <button className="btn btn-primary" disabled={busy}>{busy ? 'Guardando…' : 'Guardar'}</button>
+        </div>
+      </form>
+    </Modal>
+  )
+}
+
+/** HU-15 · T-15.2: edición masiva del punto de reorden por categoría. */
+function BulkReorder({ categories, onClose, onSaved }: { categories: Category[]; onClose: () => void; onSaved: (t: string) => void }) {
+  const [categoryId, setCategoryId] = useState('')
+  const [reorderPoint, setReorderPoint] = useState('')
+  const [safetyStock, setSafetyStock] = useState('')
+  const [onlyEmpty, setOnlyEmpty] = useState(true)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [serverError, setServerError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  async function submit(e: FormEvent) {
+    e.preventDefault()
+    const errs = validateReorder(reorderPoint, safetyStock)
+    if (!categoryId) errs.categoryId = 'Elige la categoría.'
+    setErrors(errs)
+    if (Object.keys(errs).length) return
+    setBusy(true)
+    try {
+      const res = await api<{ updated: number }>('/products/reorder', {
+        method: 'PATCH',
+        json: { categoryId, reorderPoint: Number(reorderPoint.replace(',', '.')), safetyStock: Number(safetyStock.replace(',', '.')), onlyEmpty },
+      })
+      const name = categories.find((c) => c.id === categoryId)?.name
+      onSaved(`Actualizamos ${res.updated} producto(s) de ${name}.`)
+    } catch (err) {
+      setServerError((err as ApiError).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Modal title="Punto de reorden por categoría" onClose={onClose}>
+      {serverError && <Alert>{serverError}</Alert>}
+      <form onSubmit={submit} noValidate className="form-grid">
+        <div className="span-2">
+          <label htmlFor="bulk-cat">Categoría</label>
+          <select id="bulk-cat" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} aria-invalid={!!errors.categoryId} aria-describedby="bulk-cat-err">
+            <option value="">Elige una categoría</option>
+            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <FieldError id="bulk-cat-err" message={errors.categoryId} />
+        </div>
+        <div>
+          <div className="label-row">
+            <label htmlFor="bulk-rp">Punto de reorden</label>
+            <InfoTip label="el punto de reorden">{REORDER_FORMULA}</InfoTip>
+          </div>
+          <input id="bulk-rp" inputMode="decimal" value={reorderPoint} onChange={(e) => setReorderPoint(e.target.value)} aria-invalid={!!errors.reorderPoint} aria-describedby="bulk-rp-err" />
+          <FieldError id="bulk-rp-err" message={errors.reorderPoint} />
+        </div>
+        <div>
+          <label htmlFor="bulk-ss">Stock de seguridad</label>
+          <input id="bulk-ss" inputMode="decimal" value={safetyStock} onChange={(e) => setSafetyStock(e.target.value)} aria-invalid={!!errors.safetyStock} aria-describedby="bulk-ss-err" />
+          <FieldError id="bulk-ss-err" message={errors.safetyStock} />
+        </div>
+        <label className="check span-2">
+          <input type="checkbox" checked={onlyEmpty} onChange={(e) => setOnlyEmpty(e.target.checked)} />
+          Solo productos que todavía no tienen punto de reorden
+        </label>
+        <div className="modal-actions span-2">
+          <button type="button" className="btn btn-ghost" onClick={onClose}>Cancelar</button>
+          <button className="btn btn-primary" disabled={busy}>{busy ? 'Aplicando…' : 'Aplicar a la categoría'}</button>
         </div>
       </form>
     </Modal>

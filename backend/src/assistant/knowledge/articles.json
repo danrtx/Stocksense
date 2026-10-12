@@ -1,0 +1,732 @@
+{
+  "version": 1,
+  "templates": [
+    "¿Cómo puedo {p}?",
+    "¿Dónde puedo {p}?",
+    "Quiero {p}",
+    "Necesito {p}",
+    "¿Qué pasos sigo para {p}?",
+    "Ayúdame a {p}"
+  ],
+  "articles": [
+    {
+      "id": "panel",
+      "title": "Ver el panel de inicio",
+      "section": "Panel",
+      "summary": "El panel muestra de un vistazo lo más importante de tu rol: KPIs del inventario, alertas, productos recientes y la actividad del equipo.",
+      "route": "/",
+      "permissions": [],
+      "steps": [
+        "Pulsa el logo de StockSense o «Panel» en la barra de arriba.",
+        "Revisa las tarjetas: cada una lleva a su sección con el detalle.",
+        "Lo que ves depende de tu rol: cada persona solo ve las tarjetas de lo que puede usar."
+      ],
+      "phrases": ["volver al inicio", "ver el panel principal", "ir a la pantalla de inicio", "ver el resumen del negocio", "ver el tablero general"],
+      "examples": ["¿Dónde está el inicio?", "Llévame al panel", "¿Qué muestra la página principal?", "No encuentro el dashboard", "¿Cómo vuelvo a la primera pantalla?"],
+      "keywords": ["panel", "inicio", "dashboard", "tablero"]
+    },
+    {
+      "id": "kpis",
+      "title": "Entender los KPIs del inventario",
+      "section": "Panel",
+      "summary": "El panel calcula el valor del inventario, los productos bajo el punto de reorden, los que no se mueven hace 90 días y la rotación. Puedes filtrar por bodega y categoría.",
+      "route": "/",
+      "permissions": ["stock:read"],
+      "steps": [
+        "Abre el Panel.",
+        "En «Indicadores del inventario» elige la bodega y la categoría si quieres filtrar.",
+        "Pulsa el botón «?» junto a cada KPI para ver su fórmula."
+      ],
+      "phrases": ["ver el valor del inventario", "entender la rotación del inventario", "filtrar los indicadores por bodega", "ver los productos sin movimiento", "saber cómo se calcula un KPI"],
+      "examples": ["¿Qué significa rotación?", "¿Cuánto vale mi inventario?", "¿Qué productos no se han movido en 90 días?", "¿De dónde sale el valor del inventario?", "¿Qué son los indicadores del panel?"],
+      "keywords": ["kpi", "indicadores", "rotación", "valor del inventario", "sin movimiento"]
+    },
+    {
+      "id": "buscar-producto",
+      "title": "Buscar un producto",
+      "section": "Productos",
+      "summary": "Busca por nombre o SKU desde la lupa de la barra de arriba o en la pantalla Productos, y filtra por categoría o estado.",
+      "route": "/productos",
+      "permissions": ["products:read"],
+      "steps": [
+        "Pulsa la lupa en la barra de arriba y escribe el nombre o el SKU, o abre «Productos».",
+        "Usa los filtros de categoría y estado (activos o desactivados) si hay muchos resultados.",
+        "Pulsa el nombre del producto para abrir su ficha."
+      ],
+      "phrases": ["buscar un producto", "encontrar un producto por su sku", "ver la lista de productos", "consultar el catálogo", "filtrar productos por categoría"],
+      "examples": ["¿Dónde veo todos los productos?", "No encuentro un artículo", "¿Cómo busco por referencia?", "Muéstrame el catálogo", "¿Hay un buscador de productos?"],
+      "keywords": ["buscar", "catálogo", "sku", "lupa", "lista de productos"]
+    },
+    {
+      "id": "crear-producto",
+      "title": "Crear un producto",
+      "section": "Productos",
+      "summary": "Agrega un producto al catálogo con su SKU, nombre, categoría, unidad de medida y costo.",
+      "route": "/productos?nuevo=1",
+      "permissions": ["products:write"],
+      "steps": [
+        "Abre Productos y pulsa «Nuevo producto» (o el botón «+» del riel izquierdo).",
+        "Escribe el SKU, el nombre, la categoría, la unidad de medida y el costo en pesos.",
+        "Pulsa «Agregar». Si el SKU ya existe, te avisamos para que no quede repetido."
+      ],
+      "phrases": ["crear un producto", "agregar un producto nuevo", "dar de alta un artículo", "registrar un producto en el catálogo", "añadir una referencia nueva"],
+      "examples": ["¿Cómo meto un producto nuevo?", "Quiero dar de alta una referencia", "¿Dónde se agregan artículos?", "Necesito añadir un producto al sistema", "¿Cómo creo un SKU?"],
+      "keywords": ["nuevo producto", "alta", "agregar producto", "crear sku"]
+    },
+    {
+      "id": "editar-producto",
+      "title": "Editar o desactivar un producto",
+      "section": "Productos",
+      "summary": "Cambia el nombre, la categoría, la unidad o el costo de un producto, o desactívalo cuando ya no lo vendes. Los cambios quedan en la auditoría.",
+      "route": "/productos",
+      "permissions": ["products:write"],
+      "steps": [
+        "Abre Productos y busca el producto.",
+        "Pulsa «Editar» en su fila, cambia lo necesario y guarda.",
+        "Para dejar de usarlo, edítalo y desactívalo: no se borra y su historia se conserva."
+      ],
+      "phrases": ["editar un producto", "cambiar el costo de un producto", "corregir el nombre de un producto", "desactivar un producto", "modificar la categoría de un artículo"],
+      "examples": ["Me equivoqué en el nombre de un producto", "¿Cómo actualizo el precio de costo?", "Ya no vendemos un artículo, ¿qué hago?", "¿Se puede borrar un producto?", "¿Cómo cambio la unidad de medida?"],
+      "keywords": ["editar", "modificar", "desactivar", "costo", "borrar producto"]
+    },
+    {
+      "id": "importar-productos",
+      "title": "Importar productos desde un CSV",
+      "section": "Productos",
+      "summary": "Crea o actualiza muchos productos a la vez con un archivo CSV. Las filas con error se reportan con su número y motivo sin perder las válidas.",
+      "route": "/productos/importar",
+      "permissions": ["products:write"],
+      "steps": [
+        "Abre Productos y pulsa «Importar CSV».",
+        "Pulsa «Descargar plantilla», llénala en Excel o Google Sheets y guárdala como CSV UTF-8.",
+        "Elige el archivo y pulsa «Importar».",
+        "Si algo falla, pulsa «Descargar archivo de errores» para ver la fila y el motivo."
+      ],
+      "phrases": ["importar productos desde excel", "cargar el catálogo con un archivo", "subir un csv de productos", "actualizar muchos productos a la vez", "descargar la plantilla de productos"],
+      "examples": ["Tengo mis productos en Excel, ¿cómo los subo?", "¿Se puede cargar el catálogo masivamente?", "¿Dónde está la plantilla de productos?", "Me salieron filas con error al importar", "¿Cómo hago una carga masiva?"],
+      "keywords": ["importar", "csv", "excel", "plantilla", "carga masiva"]
+    },
+    {
+      "id": "ficha-producto",
+      "title": "Ver la ficha de un producto",
+      "section": "Productos",
+      "summary": "La ficha muestra el stock por bodega, el punto de reorden, los proveedores, los últimos movimientos y la pestaña Pronóstico.",
+      "route": "/productos",
+      "covers": ["/productos/:id"],
+      "permissions": ["products:read"],
+      "steps": [
+        "Abre Productos y pulsa el nombre del producto.",
+        "En «Resumen» ves el stock por bodega, el punto de reorden y los proveedores.",
+        "En «Pronóstico» ves la demanda esperada de las próximas semanas."
+      ],
+      "phrases": ["ver el detalle de un producto", "abrir la ficha de un producto", "ver los proveedores de un producto", "ver el historial de un producto", "consultar la información de un artículo"],
+      "examples": ["¿Dónde veo todo sobre un producto?", "¿Qué proveedor tiene este artículo?", "Quiero ver los movimientos de una referencia", "¿Cómo abro un producto?", "¿Dónde está el detalle del SKU?"],
+      "keywords": ["ficha", "detalle", "información del producto"]
+    },
+    {
+      "id": "punto-reorden",
+      "title": "Definir el punto de reorden y el stock de seguridad",
+      "section": "Productos",
+      "summary": "El punto de reorden es el stock con el que debes volver a pedir; el stock de seguridad es el colchón para imprevistos. Al llegar al punto de reorden se abre una alerta.",
+      "route": "/productos",
+      "permissions": ["products:write"],
+      "steps": [
+        "Abre la ficha del producto.",
+        "En la tarjeta «Punto de reorden» pulsa «Editar».",
+        "Escribe el punto de reorden y el stock de seguridad. Puedes usar la sugerencia calculada con la demanda real y los días de entrega del proveedor.",
+        "Pulsa «Guardar»."
+      ],
+      "phrases": ["definir el punto de reorden", "configurar el stock mínimo", "poner el stock de seguridad", "cambiar el nivel de reorden de un producto", "saber cuándo volver a pedir"],
+      "examples": ["¿Cómo pongo el mínimo de un producto?", "¿Qué es el stock de seguridad?", "¿Con cuánto stock debería volver a comprar?", "¿Dónde configuro el punto de pedido?", "Quiero que me avise cuando quede poco"],
+      "keywords": ["punto de reorden", "stock de seguridad", "mínimo", "punto de pedido"]
+    },
+    {
+      "id": "reorden-categoria",
+      "title": "Cambiar el punto de reorden de una categoría completa",
+      "section": "Productos",
+      "summary": "Aplica el mismo punto de reorden y stock de seguridad a todos los productos de una categoría de una sola vez.",
+      "route": "/productos",
+      "permissions": ["products:write"],
+      "steps": [
+        "Abre Productos y pulsa «Punto de reorden por categoría».",
+        "Elige la categoría y escribe los valores.",
+        "Confirma: se aplica a todos los productos activos de esa categoría."
+      ],
+      "phrases": ["cambiar el punto de reorden de toda una categoría", "aplicar el mismo mínimo a varios productos", "editar el reorden en bloque", "actualizar el stock de seguridad por categoría"],
+      "examples": ["¿Puedo poner el mismo mínimo a todas las pinturas?", "¿Hay forma de cambiar el reorden de muchos productos juntos?", "Quiero configurar el punto de reorden por grupo", "¿Cómo edito el stock de seguridad de una línea completa?"],
+      "keywords": ["por categoría", "en bloque", "masivo", "reorden categoría"]
+    },
+    {
+      "id": "stock-actual",
+      "title": "Ver el stock actual",
+      "section": "Inventario",
+      "summary": "Muestra cuánto hay de cada producto en cada bodega, lo que va en camino por transferencias y qué productos están bajo su punto de reorden o agotados.",
+      "route": "/inventario",
+      "permissions": ["stock:read"],
+      "steps": [
+        "Abre Inventario › Stock.",
+        "Filtra por bodega, categoría o estado (con stock, bajo punto de reorden, agotados).",
+        "Pulsa un producto para ver su ficha con el detalle por bodega."
+      ],
+      "phrases": ["ver el stock actual", "consultar cuánto hay de un producto", "ver las existencias por bodega", "saber qué productos están agotados", "revisar el inventario disponible"],
+      "examples": ["¿Cuántas unidades tengo?", "¿Dónde veo las existencias?", "¿Qué se me acabó?", "Quiero ver el inventario de la bodega norte", "¿Cuánto queda en bodega?"],
+      "keywords": ["stock", "existencias", "inventario", "agotados", "disponible"]
+    },
+    {
+      "id": "registrar-entrada",
+      "title": "Registrar una entrada de stock",
+      "section": "Inventario",
+      "summary": "Suma unidades a una bodega con su motivo (compra sin orden, devolución de cliente, ajuste). Si la mercancía viene de una orden de compra, usa «Recibir mercancía» en la orden.",
+      "route": "/inventario/registrar",
+      "permissions": ["stock:write"],
+      "steps": [
+        "Abre Inventario y pulsa «Registrar entrada o salida» (o el botón de flechas del riel izquierdo).",
+        "Deja marcado «+ Entrada».",
+        "Elige el producto, la bodega, la cantidad y el motivo.",
+        "Pulsa «Guardar entrada». El movimiento queda con tu usuario, la fecha y el motivo."
+      ],
+      "phrases": ["registrar una entrada", "agregar stock a una bodega", "sumar unidades al inventario", "ingresar mercancía", "registrar una devolución de un cliente"],
+      "examples": ["¿Cómo meto unidades al inventario?", "Llegaron productos, ¿cómo los ingreso?", "¿Cómo aumento el stock?", "Un cliente devolvió un producto", "¿Dónde registro un ingreso?"],
+      "keywords": ["entrada", "ingreso", "sumar stock", "devolución"]
+    },
+    {
+      "id": "registrar-salida",
+      "title": "Registrar una salida de stock",
+      "section": "Inventario",
+      "summary": "Descuenta unidades de una bodega con su motivo (venta en mostrador, daño, pérdida, consumo interno). Si pides más de lo que hay, te decimos cuánto queda.",
+      "route": "/inventario/registrar?tipo=salida",
+      "permissions": ["stock:write"],
+      "steps": [
+        "Abre Inventario y pulsa «Registrar entrada o salida».",
+        "Marca «− Salida».",
+        "Elige el producto, la bodega, la cantidad y el motivo.",
+        "Pulsa «Guardar salida». Si la cantidad es mayor que el stock, el sistema no la deja pasar y te dice cuánto hay."
+      ],
+      "phrases": ["registrar una salida", "descontar stock", "sacar productos de la bodega", "dar de baja mercancía dañada", "restar unidades del inventario"],
+      "examples": ["¿Cómo registro una salida?", "Se dañaron unos productos, ¿cómo los saco?", "¿Cómo bajo el stock?", "Vendí algo en mostrador, ¿dónde lo descuento?", "Necesito retirar mercancía de la bodega"],
+      "keywords": ["salida", "descontar", "baja", "daño", "pérdida"]
+    },
+    {
+      "id": "movimientos",
+      "title": "Ver el historial de movimientos",
+      "section": "Inventario",
+      "summary": "Cada cambio de stock queda registrado con tipo, cantidad, saldo, motivo, usuario y fecha. Los movimientos no se pueden editar ni borrar.",
+      "route": "/inventario/movimientos",
+      "permissions": ["stock:read"],
+      "steps": [
+        "Abre Inventario › Movimientos.",
+        "Filtra por bodega, tipo o producto.",
+        "Revisa el saldo que quedó después de cada movimiento."
+      ],
+      "phrases": ["ver el historial de movimientos", "saber quién sacó un producto", "revisar las entradas y salidas", "consultar el kardex", "ver los movimientos de una bodega"],
+      "examples": ["¿Quién movió este producto?", "¿Dónde está el kardex?", "Quiero ver todo lo que entró y salió ayer", "¿Puedo editar un movimiento?", "¿Cómo reviso los cambios de stock?"],
+      "keywords": ["movimientos", "kardex", "historial", "trazabilidad"]
+    },
+    {
+      "id": "transferir",
+      "title": "Transferir stock entre bodegas",
+      "section": "Inventario",
+      "summary": "Mueve productos de una bodega a otra. El stock sale del origen al crearla y queda «en camino» hasta que la bodega de destino confirma la llegada.",
+      "route": "/inventario/transferencias",
+      "permissions": ["stock:write"],
+      "steps": [
+        "Abre Inventario › Transferencias y pulsa «Nueva transferencia».",
+        "Elige la bodega de origen y la de destino.",
+        "Agrega los productos con sus cantidades y guarda.",
+        "La transferencia queda «Pendiente» hasta que alguien en el destino pulse «Confirmar llegada»."
+      ],
+      "phrases": ["transferir productos entre bodegas", "mover stock a otra bodega", "enviar mercancía a otra sede", "hacer un traslado de inventario", "pasar unidades de una bodega a otra"],
+      "examples": ["¿Cómo paso productos a la bodega sur?", "Necesito mandar mercancía a otra sucursal", "¿Cómo hago un traslado?", "¿Dónde se mueven productos entre sedes?", "Quiero enviar cajas a la otra bodega"],
+      "keywords": ["transferencia", "traslado", "mover", "otra bodega"]
+    },
+    {
+      "id": "confirmar-transferencia",
+      "title": "Confirmar la llegada de una transferencia",
+      "section": "Inventario",
+      "summary": "Cuando la mercancía llega a la bodega de destino, confírmala para que el stock entre allí. También puedes cancelar una pendiente: el stock vuelve al origen.",
+      "route": "/inventario/transferencias",
+      "permissions": ["stock:write"],
+      "steps": [
+        "Abre Inventario › Transferencias y filtra por «Pendientes».",
+        "Abre la transferencia y revisa las cantidades.",
+        "Pulsa «Confirmar llegada». Queda registrado quién la recibió."
+      ],
+      "phrases": ["confirmar una transferencia", "recibir un traslado en la bodega", "cancelar una transferencia pendiente", "ver las transferencias en camino", "aceptar la mercancía que llegó de otra bodega"],
+      "examples": ["Me llegó un traslado, ¿cómo lo recibo?", "¿Dónde confirmo lo que mandaron de la principal?", "Se equivocaron en una transferencia, ¿cómo la anulo?", "¿Qué significa en camino?", "¿Cómo acepto una transferencia?"],
+      "keywords": ["confirmar llegada", "en camino", "pendiente", "anular transferencia"]
+    },
+    {
+      "id": "conteo-fisico",
+      "title": "Hacer un conteo físico",
+      "section": "Inventario",
+      "summary": "Cuenta lo que hay en una bodega y compáralo con el sistema. Las diferencias se ajustan solo cuando un administrador aprueba el conteo.",
+      "route": "/inventario/conteos",
+      "covers": ["/inventario/conteos/:id"],
+      "permissions": ["stock:write"],
+      "steps": [
+        "Abre Inventario › Conteos y pulsa «Iniciar conteo».",
+        "Elige la bodega y, si quieres, una categoría.",
+        "Escribe lo contado de cada producto; el sistema muestra la diferencia.",
+        "Pulsa «Enviar a revisión» para que un administrador lo apruebe."
+      ],
+      "phrases": ["hacer un conteo físico", "hacer inventario de una bodega", "contar la mercancía", "comparar lo contado con el sistema", "iniciar una toma de inventario"],
+      "examples": ["¿Cómo hago el inventario de fin de mes?", "Quiero contar la bodega", "El sistema dice una cosa y en la estantería hay otra", "¿Dónde registro lo que conté?", "¿Cómo cuadro el inventario?"],
+      "keywords": ["conteo", "toma de inventario", "contar", "diferencia"]
+    },
+    {
+      "id": "aprobar-conteo",
+      "title": "Aprobar o rechazar un conteo físico",
+      "section": "Inventario",
+      "summary": "La persona administradora revisa las diferencias del conteo y lo aprueba (se ajusta el stock con el motivo «Conteo físico») o lo rechaza con un motivo.",
+      "route": "/inventario/conteos",
+      "permissions": ["counts:approve"],
+      "steps": [
+        "Abre Inventario › Conteos y entra al conteo «En revisión».",
+        "Revisa los faltantes y sobrantes.",
+        "Pulsa «Aprobar y ajustar stock» o «Rechazar» y escribe el motivo."
+      ],
+      "phrases": ["aprobar un conteo", "rechazar un conteo físico", "ajustar el stock después de contar", "revisar las diferencias de un conteo"],
+      "examples": ["Hay un conteo esperando aprobación", "¿Quién aprueba los ajustes de inventario?", "¿Cómo acepto las diferencias del conteo?", "¿Dónde rechazo un conteo mal hecho?"],
+      "keywords": ["aprobar", "ajuste", "rechazar conteo", "faltante", "sobrante"]
+    },
+    {
+      "id": "bodegas",
+      "title": "Crear y administrar bodegas",
+      "section": "Inventario",
+      "summary": "Crea bodegas, edita su nombre y dirección, marca la principal o desactiva una que ya no tiene stock.",
+      "route": "/inventario/bodegas",
+      "permissions": ["warehouses:manage"],
+      "steps": [
+        "Abre Inventario › Bodegas.",
+        "Pulsa «Nueva bodega» y escribe el código, el nombre y la dirección.",
+        "Usa «Hacer principal» para elegir la bodega por defecto. Una bodega con stock no se puede desactivar."
+      ],
+      "phrases": ["crear una bodega", "agregar una sede nueva", "desactivar una bodega", "cambiar la bodega principal", "editar la dirección de una bodega"],
+      "examples": ["Abrimos otra sucursal, ¿cómo la creo?", "¿Por qué no puedo desactivar una bodega?", "¿Cómo cambio la bodega por defecto?", "¿Dónde administro los almacenes?", "Quiero agregar un almacén"],
+      "keywords": ["bodega", "almacén", "sede", "sucursal", "principal"]
+    },
+    {
+      "id": "crear-orden",
+      "title": "Crear una orden de compra",
+      "section": "Compras",
+      "summary": "Arma una orden con productos de un mismo proveedor. Se guarda como borrador y la puedes editar hasta enviarla.",
+      "route": "/compras/ordenes/nueva",
+      "covers": ["/compras/ordenes/:id/editar"],
+      "permissions": ["purchases:write"],
+      "steps": [
+        "Abre Compras y pulsa «Nueva orden» (o el carrito del riel izquierdo).",
+        "Elige el proveedor y la bodega donde llegará la mercancía.",
+        "Agrega los productos con su cantidad; el costo se llena con el pactado con el proveedor.",
+        "Pulsa «Guardar borrador». Luego ábrela y pulsa «Enviar al proveedor»."
+      ],
+      "phrases": ["crear una orden de compra", "hacer un pedido al proveedor", "comprar mercancía", "armar una orden de compra", "pedir productos a un proveedor"],
+      "examples": ["¿Cómo le hago un pedido a un proveedor?", "Necesito comprar más pintura", "¿Dónde se crean las órdenes de compra?", "¿Cómo genero una OC?", "Quiero pedir mercancía"],
+      "keywords": ["orden de compra", "pedido", "comprar", "oc"]
+    },
+    {
+      "id": "ver-ordenes",
+      "title": "Ver y seguir las órdenes de compra",
+      "section": "Compras",
+      "summary": "Lista las órdenes con su estado (Borrador, Enviada, Recibida parcial, Recibida o Cancelada), lo pedido y lo recibido.",
+      "route": "/compras",
+      "covers": ["/compras/ordenes/:id"],
+      "anyPermissions": ["purchases:read", "purchases:receive"],
+      "steps": [
+        "Abre Compras › Órdenes de compra.",
+        "Filtra por estado o por proveedor; «Por recibir» muestra las que faltan por llegar.",
+        "Pulsa el número de la orden para ver sus líneas y recepciones."
+      ],
+      "phrases": ["ver las órdenes de compra", "saber el estado de un pedido", "revisar qué órdenes faltan por llegar", "consultar las compras abiertas", "buscar una orden de compra"],
+      "examples": ["¿Ya llegó el pedido de Ferretería Andina?", "¿Qué órdenes están pendientes?", "¿Dónde veo mis compras?", "¿En qué va la orden OC-000003?", "¿Qué falta por recibir?"],
+      "keywords": ["órdenes", "estado del pedido", "por recibir", "compras abiertas"]
+    },
+    {
+      "id": "enviar-orden",
+      "title": "Enviar una orden y descargar su PDF",
+      "section": "Compras",
+      "summary": "Al enviar la orden se calcula y guarda su total. Puedes descargar el PDF para mandárselo al proveedor.",
+      "route": "/compras",
+      "permissions": ["purchases:write"],
+      "steps": [
+        "Abre la orden en borrador desde Compras.",
+        "Revisa las líneas y pulsa «Enviar al proveedor».",
+        "Pulsa «Descargar PDF» para mandarla por correo o imprimirla."
+      ],
+      "phrases": ["enviar una orden al proveedor", "descargar el pdf de una orden", "imprimir una orden de compra", "mandar el pedido por correo"],
+      "examples": ["¿Cómo saco el PDF de la orden?", "¿Cómo le mando la orden al proveedor?", "Quiero imprimir la orden de compra", "¿Cómo paso una orden de borrador a enviada?"],
+      "keywords": ["enviar", "pdf", "imprimir", "borrador"]
+    },
+    {
+      "id": "recibir-mercancia",
+      "title": "Recibir mercancía de una orden de compra",
+      "section": "Compras",
+      "summary": "Registra lo que llegó contra la orden. Puedes recibir por partes; si llega más de lo pedido, se pide confirmación y queda anotado. El stock sube en la bodega de la orden.",
+      "route": "/compras",
+      "permissions": ["purchases:receive"],
+      "steps": [
+        "Abre Compras y filtra por «Por recibir».",
+        "Abre la orden y pulsa «Recibir mercancía».",
+        "Escribe lo que llegó de cada producto y la fecha real de llegada.",
+        "Guarda. La orden queda «Recibida parcial» o «Recibida» según lo pendiente."
+      ],
+      "phrases": ["recibir mercancía de un pedido", "registrar lo que llegó del proveedor", "dar entrada a una orden de compra", "recibir una orden parcialmente", "registrar un sobrante del proveedor"],
+      "examples": ["Llegó el camión del proveedor, ¿qué hago?", "Solo llegó la mitad del pedido", "Me mandaron más de lo que pedí", "¿Dónde recibo una OC?", "¿Cómo ingreso lo que trajo el proveedor?"],
+      "keywords": ["recibir", "recepción", "llegó", "parcial", "sobrante"]
+    },
+    {
+      "id": "cancelar-orden",
+      "title": "Editar o cancelar una orden de compra",
+      "section": "Compras",
+      "summary": "Un borrador se puede editar libremente. Una orden enviada se puede cancelar mientras no se haya recibido nada.",
+      "route": "/compras",
+      "permissions": ["purchases:write"],
+      "steps": [
+        "Abre la orden desde Compras.",
+        "Si es borrador, pulsa «Editar» y cambia productos o cantidades.",
+        "Para anularla, pulsa «Cancelar orden». Si ya recibiste algo, no se puede cancelar."
+      ],
+      "phrases": ["cancelar una orden de compra", "editar un pedido en borrador", "anular un pedido", "cambiar las cantidades de una orden"],
+      "examples": ["El proveedor no tiene stock, ¿cómo anulo la orden?", "Me equivoqué en una cantidad del pedido", "¿Se puede modificar una orden enviada?", "¿Cómo borro una orden?"],
+      "keywords": ["cancelar", "anular", "editar orden", "modificar pedido"]
+    },
+    {
+      "id": "proveedores",
+      "title": "Crear y administrar proveedores",
+      "section": "Compras",
+      "summary": "Registra a quién le compras con su contacto y sus días de entrega. Ves el tiempo real de entrega promedio calculado con las recepciones.",
+      "route": "/compras/proveedores",
+      "covers": ["/compras/proveedores/:id"],
+      "permissions": ["purchases:read"],
+      "steps": [
+        "Abre Compras › Proveedores.",
+        "Pulsa «Nuevo proveedor» y escribe el nombre, NIT, contacto, correo, teléfono y días de entrega.",
+        "Abre un proveedor para ver sus productos, sus órdenes y el tiempo real de entrega."
+      ],
+      "phrases": ["crear un proveedor", "ver la lista de proveedores", "editar el contacto de un proveedor", "consultar los días de entrega de un proveedor", "desactivar un proveedor"],
+      "examples": ["¿Dónde agrego un proveedor nuevo?", "¿Cuántos días se demora en entregar Pinturas del Valle?", "Cambió el correo del proveedor", "¿Cómo veo a quién le compro?", "¿Se puede borrar un proveedor?"],
+      "keywords": ["proveedor", "nit", "días de entrega", "contacto"]
+    },
+    {
+      "id": "asignar-proveedor",
+      "title": "Asignar un proveedor a un producto",
+      "section": "Compras",
+      "summary": "Un producto necesita un proveedor asignado para entrar en órdenes de compra. El principal se usa para sugerir el punto de reorden y las compras.",
+      "route": "/compras/proveedores",
+      "permissions": ["purchases:write"],
+      "steps": [
+        "Abre Compras › Proveedores y entra al proveedor.",
+        "En «Productos que le compras» pulsa «Asignar».",
+        "Elige el producto, escribe la referencia del proveedor y el costo pactado, y marca si es el principal."
+      ],
+      "phrases": ["asignar un proveedor a un producto", "cambiar el proveedor principal", "vincular productos con un proveedor", "poner el costo pactado con el proveedor"],
+      "examples": ["No me deja agregar un producto a la orden porque no tiene proveedor", "¿Cómo le pongo proveedor a un artículo?", "¿Dónde se elige el proveedor principal?", "¿Cómo registro la referencia del proveedor?"],
+      "keywords": ["asignar", "proveedor principal", "costo pactado", "referencia del proveedor"]
+    },
+    {
+      "id": "sugerencias-compra",
+      "title": "Ver las sugerencias de compra",
+      "section": "Compras",
+      "summary": "El sistema sugiere cuánto y cuándo pedir de cada producto con el pronóstico, el stock, lo que ya está pedido, el stock de seguridad y los días de entrega del proveedor. Con un clic creas el borrador de la orden.",
+      "route": "/compras/sugerencias",
+      "permissions": ["purchases:read", "forecast:read"],
+      "steps": [
+        "Abre Compras › Sugerencias.",
+        "Filtra por proveedor si quieres. Cada fila dice la cantidad, la fecha para pedir y cómo se calculó.",
+        "Pulsa «Crear borrador» en una fila, o «Crear borrador con todas» para el proveedor.",
+        "Revisa el borrador y envíalo."
+      ],
+      "phrases": ["ver qué debo comprar", "saber cuánto pedir de cada producto", "ver las sugerencias de reposición", "saber cuándo hacer el próximo pedido", "convertir una sugerencia en orden de compra"],
+      "examples": ["¿Qué tengo que pedir esta semana?", "¿Cuánto debería comprarle al proveedor?", "¿El sistema me puede decir qué reponer?", "¿Cómo paso una sugerencia a orden?", "¿Cuándo me toca volver a comprar tornillos?"],
+      "keywords": ["sugerencias", "reposición", "cuánto pedir", "qué comprar"]
+    },
+    {
+      "id": "importar-ventas",
+      "title": "Cargar el historial de ventas",
+      "section": "Ventas",
+      "summary": "Sube un CSV con las ventas pasadas (SKU, bodega, fecha y cantidad) para que el modelo aprenda. No cambia el stock actual y no se duplica si lo vuelves a subir.",
+      "route": "/ventas",
+      "permissions": ["sales:import"],
+      "steps": [
+        "Abre Ventas › Historial de ventas.",
+        "Pulsa «Descargar plantilla» y llénala con tus ventas.",
+        "Elige el archivo y pulsa «Cargar ventas».",
+        "Revisa el informe de calidad: SKU desconocidos, cantidades negativas, fechas futuras y semanas sin datos."
+      ],
+      "phrases": ["cargar el historial de ventas", "importar las ventas pasadas", "subir un archivo de ventas", "alimentar el modelo con ventas antiguas", "revisar la calidad de los datos de ventas"],
+      "examples": ["Tengo dos años de ventas en Excel", "¿Cómo le paso las ventas viejas al sistema?", "¿Dónde subo el histórico?", "¿Subir ventas cambia mi stock?", "¿Qué formato lleva el archivo de ventas?"],
+      "keywords": ["historial", "ventas pasadas", "histórico", "importar ventas"]
+    },
+    {
+      "id": "claves-api",
+      "title": "Conectar el punto de venta (claves de API)",
+      "section": "Ventas",
+      "summary": "Crea una clave para que tu punto de venta envíe cada venta a StockSense. Cada venta descuenta stock y no se duplica si se reenvía con el mismo identificador. La documentación con ejemplos está en /api/docs.",
+      "route": "/ventas/claves",
+      "permissions": ["integrations:manage"],
+      "steps": [
+        "Abre Ventas › Punto de venta (API).",
+        "Pulsa «Nueva clave», ponle un nombre y pulsa «Crear clave».",
+        "Copia la clave: solo se muestra una vez.",
+        "Revisa «Cómo se envía una venta» y la documentación de la API para configurar tu punto de venta."
+      ],
+      "phrases": ["conectar el punto de venta", "crear una clave de api", "integrar la caja con el inventario", "revocar una clave", "enviar ventas automáticamente"],
+      "examples": ["¿Cómo conecto mi software de caja?", "¿Dónde saco el token para la API?", "Perdí la clave, ¿qué hago?", "¿Dónde está la documentación de la API?", "Quiero que las ventas bajen el stock solas"],
+      "keywords": ["api", "clave", "token", "integración", "punto de venta", "pos"]
+    },
+    {
+      "id": "pronostico-producto",
+      "title": "Ver el pronóstico de demanda de un producto",
+      "section": "Pronóstico",
+      "summary": "El gráfico muestra las ventas pasadas en verde, el pronóstico en ámbar y el rango probable (mínimo y máximo) para 4, 8 o 12 semanas.",
+      "route": "/pronostico",
+      "permissions": ["forecast:read"],
+      "steps": [
+        "Abre Pronóstico › Resumen y pulsa «Ver gráfico» en el producto, o abre la ficha del producto y elige la pestaña «Pronóstico».",
+        "Cambia el horizonte con los botones 4, 8 o 12 semanas.",
+        "Si el producto tiene menos de 12 semanas de ventas, verás qué hacer para tener pronóstico."
+      ],
+      "phrases": ["ver el pronóstico de un producto", "saber cuánto voy a vender", "ver la demanda esperada", "ver el gráfico de ventas futuras", "cambiar el horizonte del pronóstico"],
+      "examples": ["¿Cuánto voy a vender el próximo mes?", "¿Dónde está la predicción de demanda?", "¿Qué significa la franja del gráfico?", "¿Por qué un producto no tiene pronóstico?", "Quiero ver la proyección de ventas"],
+      "keywords": ["pronóstico", "predicción", "demanda", "proyección", "forecast"]
+    },
+    {
+      "id": "explicar-pronostico",
+      "title": "Pedir la explicación del pronóstico con IA",
+      "section": "Pronóstico",
+      "summary": "El botón «Explicar» genera con Gemini un texto corto con la tendencia, la estacionalidad y las advertencias, usando solo las cifras del pronóstico. Lleva la etiqueta «Generado con IA» y puedes reportar errores.",
+      "route": "/pronostico",
+      "permissions": ["forecast:read"],
+      "steps": [
+        "Abre el pronóstico de un producto.",
+        "Pulsa «Explicar».",
+        "Lee la explicación. Si ves algo mal, pulsa «Reportar un error»."
+      ],
+      "phrases": ["explicar el pronóstico", "entender por qué se espera esa demanda", "pedir una explicación con inteligencia artificial", "reportar un error en la explicación"],
+      "examples": ["¿Por qué el sistema dice que voy a vender más?", "¿Qué hace el botón Explicar?", "No entiendo el gráfico del pronóstico", "La explicación de la IA tiene un error", "¿Gemini puede explicarme la predicción?"],
+      "keywords": ["explicar", "gemini", "ia", "inteligencia artificial", "por qué"]
+    },
+    {
+      "id": "precision",
+      "title": "Ver la precisión del pronóstico",
+      "section": "Pronóstico",
+      "summary": "Compara el pronóstico con lo que se vendió de verdad en las últimas 13 semanas: precisión general, de los 20 más vendidos y error por producto. Los que superan el umbral se marcan para revisión.",
+      "route": "/pronostico/precision",
+      "permissions": ["forecast:read"],
+      "steps": [
+        "Abre Pronóstico › Precisión.",
+        "Revisa la precisión general y la de los 20 productos más vendidos.",
+        "Marca «Solo para revisar» para ver los productos con error mayor al umbral."
+      ],
+      "phrases": ["ver la precisión del pronóstico", "saber qué tan acertado es el modelo", "ver el error por producto", "revisar los productos con mal pronóstico", "comparar el pronóstico con las ventas reales"],
+      "examples": ["¿Qué tanto le atina el modelo?", "¿Puedo confiar en la predicción?", "¿Qué es el WAPE?", "¿Cuáles productos se pronostican mal?", "¿Qué significa sesgo?"],
+      "keywords": ["precisión", "error", "wape", "sesgo", "acierto"]
+    },
+    {
+      "id": "modelos-pronostico",
+      "title": "Ver las versiones del modelo de pronóstico",
+      "section": "Pronóstico",
+      "summary": "Cada reentrenamiento crea una versión con su error. Si la nueva es peor que la vigente, se conserva la vigente y se anota el motivo.",
+      "route": "/pronostico/modelos",
+      "permissions": ["forecast:read"],
+      "steps": [
+        "Abre Pronóstico › Modelos.",
+        "Revisa la versión activa, cuándo se entrenó, su error y qué técnica ganó en cuántos productos.",
+        "En cada versión verás si se aceptó o se rechazó y por qué."
+      ],
+      "phrases": ["ver las versiones del modelo", "saber qué técnica usa el pronóstico", "ver cuándo se entrenó el modelo", "ver por qué se rechazó un modelo"],
+      "examples": ["¿Cuándo se actualizó el pronóstico por última vez?", "¿Qué técnica usa el modelo?", "¿Por qué no se usó el modelo nuevo?", "¿Qué versión del modelo está activa?"],
+      "keywords": ["versión", "modelo", "técnica", "rechazado", "activo"]
+    },
+    {
+      "id": "reentrenar",
+      "title": "Reentrenar el pronóstico",
+      "section": "Pronóstico",
+      "summary": "El modelo se reentrena solo cada semana según el horario configurado. También puedes lanzarlo a mano; si falla se avisa por correo al equipo técnico.",
+      "route": "/pronostico/modelos",
+      "permissions": ["forecast:run"],
+      "steps": [
+        "Abre Pronóstico › Modelos.",
+        "Pulsa «Reentrenar ahora». El trabajo entra a la cola y en uno o dos minutos aparece la versión nueva.",
+        "Para cambiar el día y la hora del reentrenamiento automático, un administrador entra a Configuración de IA."
+      ],
+      "phrases": ["reentrenar el modelo", "actualizar el pronóstico", "volver a calcular la predicción", "cambiar el horario del reentrenamiento", "lanzar el modelo a mano"],
+      "examples": ["Subí ventas nuevas, ¿cómo actualizo el pronóstico?", "¿Cada cuánto se reentrena?", "¿Cómo fuerzo un nuevo cálculo?", "Falló el reentrenamiento", "¿Se puede programar el entrenamiento?"],
+      "keywords": ["reentrenar", "actualizar", "recalcular", "programar"]
+    },
+    {
+      "id": "datos-modelo",
+      "title": "Revisar los datos del modelo",
+      "section": "Pronóstico",
+      "summary": "Muestra las ventas agrupadas por semana que usa el modelo, qué productos tienen datos suficientes (12 semanas o más) y el registro de cada preparación de datos.",
+      "route": "/pronostico/datos",
+      "covers": ["/ventas/modelo"],
+      "permissions": ["forecast:read"],
+      "steps": [
+        "Abre Pronóstico › Datos.",
+        "Filtra las series por «Listas» o «Datos insuficientes».",
+        "Pulsa «Ver semanas» para ver las ventas semanales de un producto. Con permiso puedes pulsar «Ejecutar ahora»."
+      ],
+      "phrases": ["ver los datos del modelo", "saber qué productos tienen datos suficientes", "preparar los datos de ventas", "ver las ventas por semana", "ejecutar el flujo de datos"],
+      "examples": ["¿Por qué dice datos insuficientes?", "¿Cuántas semanas de historia necesita un producto?", "¿Dónde veo las ventas semanales?", "¿Cuándo se prepararon los datos?", "¿Qué es el flujo de datos?"],
+      "keywords": ["datos insuficientes", "series", "semanas", "flujo de datos"]
+    },
+    {
+      "id": "alertas",
+      "title": "Ver las alertas de stock bajo",
+      "section": "Alertas",
+      "summary": "Cuando un producto llega a su punto de reorden se abre una alerta en la campana y por correo. Se cierra sola cuando el stock se recupera.",
+      "route": "/alertas",
+      "permissions": ["alerts:read"],
+      "steps": [
+        "Pulsa la campana de la barra de arriba o abre «Alertas de stock».",
+        "Filtra por nuevas, vistas o resueltas; pulsa «Marcar vista» cuando la revises.",
+        "Si puedes comprar, pulsa «Crear orden» para reponer."
+      ],
+      "phrases": ["ver las alertas de stock", "saber qué productos están por agotarse", "marcar una alerta como vista", "revisar los avisos de la campana"],
+      "examples": ["¿Qué significa el número de la campana?", "¿Qué productos están bajos?", "¿Cómo quito una alerta?", "¿Por qué me salió una alerta?", "¿Dónde veo los avisos?"],
+      "keywords": ["alerta", "campana", "aviso", "stock bajo"]
+    },
+    {
+      "id": "alertas-correo",
+      "title": "Activar o apagar las alertas por correo",
+      "section": "Alertas",
+      "summary": "Cada persona decide si recibe las alertas de stock por correo. Llega como máximo un correo al día por producto; en la app siguen apareciendo igual.",
+      "route": "/alertas",
+      "permissions": ["alerts:read"],
+      "steps": [
+        "Abre Alertas de stock.",
+        "Usa el interruptor de aviso por correo para activarlo o apagarlo."
+      ],
+      "phrases": ["dejar de recibir correos de alertas", "activar las alertas por correo", "configurar las notificaciones por email", "apagar los avisos al correo"],
+      "examples": ["Me llegan muchos correos de stock bajo", "¿Cómo recibo las alertas en mi email?", "No quiero más correos de alertas", "¿Dónde configuro las notificaciones?"],
+      "keywords": ["correo", "email", "notificaciones", "apagar"]
+    },
+    {
+      "id": "invitar-usuario",
+      "title": "Invitar a una persona al sistema",
+      "section": "Usuarios",
+      "summary": "Invita por correo a alguien de tu equipo con un rol (Administrador, Compras, Bodega o Analista). La persona activa su cuenta con el enlace.",
+      "route": "/usuarios?invitar=1",
+      "permissions": ["users:manage"],
+      "steps": [
+        "Pulsa tu avatar (arriba a la derecha) y elige «Usuarios», o usa el ícono de invitar del riel izquierdo. Luego pulsa «Invitar usuario».",
+        "Escribe el nombre completo, el correo y elige el rol.",
+        "Envía la invitación. Si no le llegó, pulsa «Reenviar» en su fila."
+      ],
+      "phrases": ["invitar a un usuario", "crear una cuenta para alguien", "agregar una persona al equipo", "dar acceso a un empleado", "reenviar una invitación"],
+      "examples": ["Entró alguien nuevo a bodega, ¿cómo le doy acceso?", "¿Cómo creo un usuario?", "A mi compañero no le llegó la invitación", "¿Cómo agrego a mi contador?", "Quiero sumar a alguien al sistema"],
+      "keywords": ["invitar", "usuario nuevo", "acceso", "invitación"]
+    },
+    {
+      "id": "gestionar-usuarios",
+      "title": "Cambiar el rol o desactivar un usuario",
+      "section": "Usuarios",
+      "summary": "El rol define qué puede hacer cada persona. Puedes cambiarlo, desactivar a quien ya no trabaja contigo (se cierran sus sesiones) y reactivarlo.",
+      "route": "/usuarios",
+      "permissions": ["users:manage"],
+      "steps": [
+        "Pulsa tu avatar (arriba a la derecha) y elige «Usuarios».",
+        "Pulsa «Editar» en la persona para cambiar su rol.",
+        "Pulsa «Desactivar» para quitarle el acceso o «Reactivar» para devolvérselo."
+      ],
+      "phrases": ["cambiar el rol de un usuario", "dar permisos a una persona", "desactivar un usuario", "quitarle el acceso a alguien", "ver qué puede hacer cada rol"],
+      "examples": ["Necesito que alguien de bodega pueda comprar", "Un empleado se fue de la empresa", "¿Cómo le doy permiso de administrador a alguien?", "¿Qué diferencia hay entre los roles?", "¿Cómo bloqueo a un usuario?"],
+      "keywords": ["rol", "permisos", "desactivar usuario", "administrador"]
+    },
+    {
+      "id": "auditoria",
+      "title": "Revisar la auditoría",
+      "section": "Auditoría",
+      "summary": "Registro de quién hizo qué y cuándo: productos, usuarios, sesiones, inventario y compras. No se puede editar.",
+      "route": "/auditoria",
+      "permissions": ["audit:read"],
+      "steps": [
+        "Pulsa tu avatar (arriba a la derecha) y elige «Auditoría».",
+        "Filtra por tipo (productos, categorías, usuarios y sesiones).",
+        "Revisa la fecha, quién lo hizo y el detalle del cambio."
+      ],
+      "phrases": ["ver la auditoría", "saber quién cambió algo", "revisar el registro de cambios", "ver los inicios de sesión", "investigar un cambio sospechoso"],
+      "examples": ["¿Quién cambió el costo de este producto?", "¿Dónde veo el log de cambios?", "¿Alguien entró a mi cuenta?", "Quiero ver todo lo que hizo un usuario", "¿Hay un historial de acciones?"],
+      "keywords": ["auditoría", "registro", "log", "quién"]
+    },
+    {
+      "id": "reportes",
+      "title": "Reportes",
+      "section": "Reportes",
+      "summary": "La sección de reportes exportables llega en el sprint 9. Mientras tanto, el panel de KPIs y las pantallas de stock y precisión muestran los indicadores principales.",
+      "route": "/reportes",
+      "permissions": ["reports:read"],
+      "steps": [
+        "Abre Reportes para ver qué incluirá.",
+        "Mientras tanto usa el Panel (KPIs), Inventario › Stock y Pronóstico › Precisión."
+      ],
+      "phrases": ["ver los reportes", "exportar un informe", "descargar un reporte del inventario", "sacar estadísticas del negocio"],
+      "examples": ["¿Dónde descargo un informe?", "¿Puedo exportar a Excel?", "¿Hay reportes de ventas?", "Necesito un informe para la gerencia"],
+      "keywords": ["reporte", "informe", "exportar", "estadísticas"]
+    },
+    {
+      "id": "configuracion-ia",
+      "title": "Configurar la IA y el asistente",
+      "section": "Configuración",
+      "summary": "Ajusta el umbral de confianza del asistente, el umbral de error del pronóstico, el horario del reentrenamiento y el límite mensual de Gemini por persona. También ves el consumo y entrenas el modelo del asistente.",
+      "route": "/configuracion/ia",
+      "permissions": ["ai:manage"],
+      "steps": [
+        "Pulsa tu avatar (arriba a la derecha) y elige «Configuración de IA».",
+        "Cambia los valores en «Ajustes» y pulsa «Guardar». No hace falta tocar código.",
+        "En «Consumo de Gemini» ves llamadas, tokens y costo estimado del mes por persona.",
+        "En «Modelo del asistente» pulsa «Entrenar ahora» para crear una versión nueva."
+      ],
+      "phrases": ["configurar la inteligencia artificial", "cambiar el límite de gemini", "ver el consumo de gemini", "cambiar el umbral del asistente", "entrenar el modelo del asistente"],
+      "examples": ["¿Cuánto estamos gastando en Gemini?", "¿Dónde se cambia el límite mensual de IA?", "¿Cómo entreno el chatbot?", "Quiero que el asistente pregunte menos a Gemini", "¿Dónde se configura el reentrenamiento semanal?"],
+      "keywords": ["configuración", "gemini", "límite", "umbral", "consumo", "costo"]
+    },
+    {
+      "id": "asistente",
+      "title": "Usar el asistente de ayuda",
+      "section": "Ayuda",
+      "summary": "El asistente responde cómo hacer cosas en StockSense con los pasos y un botón a la pantalla. Recuerda la conversación. Si no está seguro, consulta a Gemini con las fichas de ayuda.",
+      "route": null,
+      "permissions": [],
+      "steps": [
+        "Pulsa el botón «Ayuda» abajo a la derecha en cualquier pantalla.",
+        "Escribe tu duda como se la dirías a un compañero.",
+        "Pulsa el botón de la respuesta para ir a la pantalla. «Nueva conversación» borra el contexto."
+      ],
+      "phrases": ["usar el asistente", "hablar con el chatbot", "saber qué puede hacer el asistente", "empezar una conversación nueva"],
+      "examples": ["¿Qué puedes hacer?", "¿Quién eres?", "¿Cómo funciona este chat?", "Hola, necesito ayuda", "¿Me puedes ayudar?"],
+      "keywords": ["asistente", "chat", "chatbot", "ayuda", "hola"]
+    },
+    {
+      "id": "tema-oscuro",
+      "title": "Cambiar a modo oscuro o claro",
+      "section": "Ayuda",
+      "summary": "Cambia los colores de la aplicación a modo oscuro o claro. Se recuerda en tu navegador.",
+      "route": null,
+      "permissions": [],
+      "steps": [
+        "Pulsa el botón de luna (o de sol) en la barra de arriba o en el riel izquierdo."
+      ],
+      "phrases": ["cambiar a modo oscuro", "poner el tema claro", "cambiar los colores de la pantalla", "activar el modo noche"],
+      "examples": ["La pantalla brilla mucho", "¿Hay modo nocturno?", "¿Cómo pongo fondo negro?", "Quiero el tema claro otra vez"],
+      "keywords": ["modo oscuro", "tema", "colores", "noche"]
+    },
+    {
+      "id": "sesion",
+      "title": "Cerrar sesión, contraseña y bloqueo",
+      "section": "Ayuda",
+      "summary": "Cierra sesión desde tu avatar. Si fallas la contraseña varias veces la cuenta se bloquea 15 minutos y se desbloquea sola. La sesión se cierra después de 30 minutos sin uso. Por ahora no hay recuperación de contraseña por correo: pide ayuda a un administrador.",
+      "route": null,
+      "covers": ["/login", "/invitacion/:token"],
+      "permissions": [],
+      "steps": [
+        "Para salir, pulsa tu avatar arriba a la derecha y «Cerrar sesión».",
+        "Si la cuenta quedó bloqueada por intentos fallidos, espera 15 minutos.",
+        "Si olvidaste la contraseña, escríbele a un administrador."
+      ],
+      "phrases": ["cerrar sesión", "recuperar mi contraseña", "desbloquear mi cuenta", "salir del sistema", "activar mi cuenta con la invitación"],
+      "examples": ["Olvidé mi contraseña", "Me bloqueó por intentos fallidos", "¿Por qué me sacó del sistema?", "¿Cómo salgo de mi cuenta?", "El enlace de invitación no funciona"],
+      "keywords": ["contraseña", "sesión", "bloqueo", "salir", "login"]
+    }
+  ]
+}

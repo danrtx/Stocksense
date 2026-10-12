@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsEmail, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 const trimLower = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim().toLowerCase() : value;
@@ -23,4 +23,10 @@ export class AcceptInvitationDto {
   @IsString()
   @IsNotEmpty({ message: 'Escribe una contraseña.' })
   password: string;
+}
+
+export class UpdatePreferencesDto {
+  @IsOptional()
+  @IsBoolean({ message: 'Indica sí o no.' })
+  notifyStockAlertsEmail?: boolean;
 }

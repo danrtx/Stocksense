@@ -10,6 +10,8 @@ interface AuthState {
   logout: (notice?: string) => Promise<void>
   can: (permission: Permission) => boolean
   clearNotice: () => void
+  /** Vuelve a leer el perfil (por ejemplo, tras cambiar las preferencias). */
+  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthState | null>(null)
@@ -78,6 +80,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [endSession],
   )
 
+  const refreshProfile = useCallback(async () => {
+    const res = await api<{ user: Profile }>('/auth/me')
+    setUser(res.user)
+  }, [])
+
   const value = useMemo<AuthState>(
     () => ({
       user,
@@ -87,8 +94,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       can: (permission) => !!user?.permissions.includes(permission),
       clearNotice: () => setNotice(null),
+      refreshProfile,
     }),
-    [user, loading, notice, login, logout],
+    [user, loading, notice, login, logout, refreshProfile],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

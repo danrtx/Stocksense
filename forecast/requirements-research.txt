@@ -1,0 +1,3 @@
+-r requirements.txt
+# Solo para research/compare_models.py (T-19.1). No hace falta en producción.
+prophet==1.5.0

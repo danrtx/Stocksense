@@ -1,6 +1,8 @@
 import { Transform, Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
   IsBoolean,
+  IsDefined,
   IsEnum,
   IsIn,
   IsInt,
@@ -110,4 +112,48 @@ export class CreateCategoryDto {
 
 export class SetActiveDto {
   @IsBoolean() active: boolean;
+}
+
+// ---------- HU-15 punto de reorden y stock de seguridad ----------
+/** Un campo vacío no se convierte en 0: se rechaza (criterio 2 de HU-15). */
+const requiredNumber = ({ value }: { value: unknown }) =>
+  value === '' || value === null ? undefined : typeof value === 'string' ? Number(value) : value;
+
+const REQUIRED_QTY = (label: string) => ({
+  message: `${label} es obligatorio y debe ser un número con máximo 3 decimales.`,
+});
+
+export class SetReorderDto {
+  // class-validator evalúa de abajo hacia arriba: primero que exista, luego que sea número.
+  @Max(99_999_999, { message: 'El punto de reorden es demasiado alto.' })
+  @Min(0, { message: 'El punto de reorden no puede ser negativo.' })
+  @IsNumber({ maxDecimalPlaces: 3, allowNaN: false }, REQUIRED_QTY('El punto de reorden'))
+  @IsDefined(REQUIRED_QTY('El punto de reorden'))
+  @Transform(requiredNumber)
+  reorderPoint: number;
+
+  @Max(99_999_999, { message: 'El stock de seguridad es demasiado alto.' })
+  @Min(0, { message: 'El stock de seguridad no puede ser negativo.' })
+  @IsNumber({ maxDecimalPlaces: 3, allowNaN: false }, REQUIRED_QTY('El stock de seguridad'))
+  @IsDefined(REQUIRED_QTY('El stock de seguridad'))
+  @Transform(requiredNumber)
+  safetyStock: number;
+}
+
+export class BulkReorderDto extends SetReorderDto {
+  /** Aplica a todos los productos activos de esta categoría… */
+  @IsOptional() @IsUUID('4', { message: 'Elige una categoría.' }) categoryId?: string;
+
+  /** …o solo a estos productos. */
+  @IsOptional()
+  @IsUUID('4', { each: true })
+  @ArrayMaxSize(5000)
+  productIds?: string[];
+
+  /** Si es true, solo completa los productos que aún no tienen punto de reorden. */
+  @IsOptional() @IsBoolean() onlyEmpty?: boolean;
+}
+
+export class ImportProductsDto {
+  @IsOptional() @IsIn(['true', 'false']) createCategories?: 'true' | 'false';
 }

@@ -4,7 +4,7 @@ export const formatDate = (iso: string | null) =>
 export const formatMoney = (value?: number) =>
   value === undefined
     ? '—'
-    : value.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 2 })
+    : value.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 2 })
 
 export const formatNumber = (value: number) => value.toLocaleString('es-CO')
 
@@ -34,3 +34,42 @@ export function initials(name: string): string {
     .map((w) => w[0]?.toUpperCase())
     .join('')
 }
+
+/** Cantidades con hasta 3 decimales (los kilos y metros pueden tener decimales). */
+export const formatQty = (value: number | null | undefined) =>
+  value === null || value === undefined ? '—' : value.toLocaleString('es-CO', { maximumFractionDigits: 3 })
+
+/** Fecha sin hora a partir de AAAA-MM-DD, sin correr un día por la zona horaria. */
+export const formatDateOnly = (value: string | null) =>
+  value
+    ? new Date(`${value.slice(0, 10)}T12:00:00`).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '—'
+
+/** Hoy en formato AAAA-MM-DD según el reloj del equipo. */
+export function todayIso(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+export const plural = (n: number, one: string, many: string) => `${n.toLocaleString('es-CO')} ${n === 1 ? one : many}`
+
+/** 0,162 → «16,2 %». */
+export const formatPct = (value: number | null | undefined, digits = 1) =>
+  value === null || value === undefined || !Number.isFinite(value)
+    ? '—'
+    : `${(value * 100).toLocaleString('es-CO', { maximumFractionDigits: digits, minimumFractionDigits: 0 })} %`
+
+/** 0,25 → «+25 %», −0,1 → «−10 %». */
+export function formatChange(value: number | null | undefined): string {
+  if (value === null || value === undefined || !Number.isFinite(value)) return '—'
+  const pct = Math.round(value * 100)
+  return `${pct > 0 ? '+' : pct < 0 ? '−' : ''}${Math.abs(pct).toLocaleString('es-CO')} %`
+}
+
+/** Precisión que ve la persona: 1 − WAPE, sin bajar de 0. */
+export const accuracyFromWape = (wape: number | null | undefined) =>
+  wape === null || wape === undefined ? null : Math.max(0, 1 - wape)
+
+/** Semana «12 oct» a partir de AAAA-MM-DD. */
+export const formatWeek = (value: string) =>
+  new Date(`${value.slice(0, 10)}T12:00:00`).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }).replace('.', '')

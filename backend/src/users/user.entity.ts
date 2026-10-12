@@ -49,6 +49,10 @@ export class User {
   @Column({ name: 'last_login_at', type: 'timestamptz', nullable: true })
   lastLoginAt: Date | null;
 
+  /** HU-16: recibir por correo las alertas de stock bajo. */
+  @Column({ name: 'notify_stock_alerts_email', default: true })
+  notifyStockAlertsEmail: boolean;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 

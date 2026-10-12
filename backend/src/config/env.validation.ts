@@ -3,6 +3,7 @@ import {
   IsEmail,
   IsEnum,
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   IsUrl,
@@ -97,10 +98,53 @@ export class EnvironmentVariables {
   @MinLength(10)
   ADMIN_PASSWORD?: string;
 
-  /** Se usará desde el sprint 7 (E8). Solo se lee del entorno o del gestor de secretos. */
+  /** HU-18: dirección del servicio de pronóstico en Python (por ejemplo, http://forecast:8000). */
+  @IsOptional()
+  @IsUrl({ require_tld: false, require_protocol: true })
+  FORECAST_URL?: string;
+
+  /** Secreto compartido entre la API y el servicio de pronóstico. */
+  @IsOptional()
+  @IsString()
+  FORECAST_TOKEN?: string;
+
+  /**
+   * HU-23: clave de Gemini. Solo se lee del entorno o del gestor de secretos del servidor;
+   * nunca llega al navegador. Sin clave, la app funciona igual y sin las funciones de IA.
+   */
   @IsOptional()
   @IsString()
   GEMINI_API_KEY?: string;
+
+  /** Modelo de Gemini (por defecto gemini-3.1-pro-preview). */
+  @IsOptional()
+  @IsString()
+  GEMINI_MODEL?: string;
+
+  /** Solo para pruebas o un proxy propio; por defecto la API pública de Google. */
+  @IsOptional()
+  @IsUrl({ require_tld: false, require_protocol: true })
+  GEMINI_BASE_URL?: string;
+
+  /** Tiempo máximo de una llamada, con reintentos incluidos (criterio 4 de HU-23). */
+  @IsInt()
+  @Min(1000)
+  @Max(60_000)
+  GEMINI_TIMEOUT_MS: number = 10_000;
+
+  /** Precios en dólares por millón de tokens para estimar el costo (T-23.3). */
+  @IsNumber()
+  @Min(0)
+  GEMINI_PRICE_INPUT_PER_M: number = 2;
+
+  @IsNumber()
+  @Min(0)
+  GEMINI_PRICE_OUTPUT_PER_M: number = 12;
+
+  /** Nivel de razonamiento de los modelos Gemini 3 (low, medium o high). */
+  @IsOptional()
+  @IsString()
+  GEMINI_THINKING_LEVEL?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>): EnvironmentVariables {

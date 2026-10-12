@@ -3,6 +3,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AiModule } from './ai/ai.controller';
+import { AlertsModule } from './alerts/alerts.module';
+import { AssistantModule } from './assistant/assistant.controller';
 import { AuditModule } from './audit/audit.module';
 import { AuthGuard } from './auth/auth.guard';
 import { AuthModule } from './auth/auth.module';
@@ -12,9 +15,15 @@ import { RolesController } from './common/auth/roles.controller';
 import { envFilePaths } from './config/env-files';
 import { validateEnv } from './config/env.validation';
 import { buildTypeOrmOptions } from './database/typeorm-options';
+import { ForecastModule } from './forecast/forecast.module';
 import { HealthController } from './health/health.controller';
+import { InventoryModule } from './inventory/inventory.module';
 import { MailModule } from './mail/mail.module';
 import { ProductsModule } from './products/products.module';
+import { SettingsModule } from './settings/settings.controller';
+import { PurchasesModule } from './purchases/purchases.module';
+import { IntegrationsModule, SalesModule } from './sales/sales.module';
+import { SuppliersModule } from './suppliers/suppliers.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -38,6 +47,16 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     ProductsModule,
     DashboardModule,
+    AlertsModule,
+    InventoryModule,
+    SuppliersModule,
+    PurchasesModule,
+    SalesModule,
+    IntegrationsModule,
+    ForecastModule,
+    SettingsModule,
+    AiModule,
+    AssistantModule,
   ],
   controllers: [HealthController, RolesController],
   providers: [

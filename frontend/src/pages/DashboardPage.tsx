@@ -1,12 +1,29 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
-import { ROLE_LABELS, UNIT_LABELS, type DashboardSummary } from '../api/types'
+import { ROLE_LABELS, UNIT_LABELS, type DashboardSummary, type ForecastRunInfo, type ForecastSummaryRow } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
-import { Icon } from '../components/Icon'
+import { Icon, type IconName } from '../components/Icon'
 import { Alert } from '../components/ui'
+import { KpiSection } from '../components/KpiSection'
+import type { StockAlert } from '../api/types'
+import type { Page } from '../api/client'
 import { ACTION_LABELS, describeChanges } from '../lib/audit'
-import { compactNumber, formatDay, formatMoney, formatNumber, formatTime, initials, niceScale } from '../lib/format'
+import { accuracyFromWape, compactNumber, formatChange, formatDay, formatMoney, formatNumber, formatPct, formatTime, initials, niceScale } from '../lib/format'
+
+const ENTITY_ICONS: Record<string, IconName> = {
+  product: 'box',
+  category: 'tag',
+  user: 'users',
+  warehouse: 'grid',
+  transfer: 'truck',
+  stock_count: 'clipboard',
+  supplier: 'truck',
+  purchase_order: 'cart',
+  sales_import: 'upload',
+  api_key: 'shield',
+  pipeline_run: 'trend',
+}
 
 const today = () => {
   const text = new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
@@ -48,6 +65,7 @@ export function DashboardPage() {
 
       {error && <Alert>{error}</Alert>}
       {!can('products:read') && <Alert kind="info">Tu rol todavía no tiene secciones con datos para mostrar.</Alert>}
+      {can('stock:read') && <KpiSection showCost={can('products:cost:read')} />}
 
       {data && (
         <div className="dash-grid">
@@ -58,11 +76,11 @@ export function DashboardPage() {
 
           <CategoryChart data={data} showCost={can('products:cost:read')} />
 
-          <ForecastPreview />
+          {can('forecast:read') && <ForecastPreview />}
 
           {data.activity ? <ActivityCard items={data.activity} /> : <RecentProductsCard data={data} showCost={can('products:cost:read')} />}
 
-          {data.team ? <TeamCard team={data.team} /> : <StockAlertsPreview />}
+          {can('alerts:read') ? <StockAlertsCard /> : data.team ? <TeamCard team={data.team} /> : null}
         </div>
       )}
       {!data && !error && can('products:read') && <div className="dash-grid is-loading" aria-busy="true" />}
@@ -215,31 +233,47 @@ function CategoryChart({ data, showCost }: { data: DashboardSummary; showCost: b
   )
 }
 
+/** HU-19 en el panel: lo que más se espera vender y qué tan acertado viene el modelo. */
 function ForecastPreview() {
+  const [data, setData] = useState<{ run: ForecastRunInfo | null; items: ForecastSummaryRow[] } | null>(null)
+  useEffect(() => {
+    api<{ run: ForecastRunInfo | null; items: ForecastSummaryRow[] }>('/forecast/summary?limit=5').then(setData).catch(() => setData({ run: null, items: [] }))
+  }, [])
   return (
     <section className="card dash-card forecast-card">
-      <CardHead title="Pronóstico de demanda" subtitle="Demanda esperada por semana" />
-      <div className="forecast-preview" aria-hidden="true">
-        <svg viewBox="0 0 300 140" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="fc-fill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="var(--mint)" stopOpacity="0.45" />
-              <stop offset="1" stopColor="var(--mint)" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <path d="M0 100 C 20 90, 30 60, 50 70 S 80 105, 100 85 S 130 40, 150 55 S 180 95, 200 80" fill="none" stroke="var(--chart-bar-strong)" strokeWidth="2.5" />
-          <path d="M0 100 C 20 90, 30 60, 50 70 S 80 105, 100 85 S 130 40, 150 55 S 180 95, 200 80 L200 140 L0 140 Z" fill="url(#fc-fill)" />
-          <path d="M200 80 S 240 45, 260 50 S 290 30, 300 25" fill="none" stroke="var(--forecast)" strokeWidth="2.5" strokeDasharray="6 6" />
-          <line x1="200" y1="10" x2="200" y2="140" stroke="var(--border)" strokeDasharray="3 4" />
-        </svg>
-      </div>
-      <div className="legend-inline small">
-        <span><i className="sw sw-real" /> Ventas reales</span>
-        <span><i className="sw sw-pred" /> Pronóstico</span>
-      </div>
-      <p className="muted small">
-        <span className="chip chip-forecast">Sprint 6</span> Ejemplo ilustrativo: verás datos reales cuando cargues el historial de ventas.
-      </p>
+      <CardHead title="Pronóstico de demanda" subtitle="Próximas 4 semanas, lo más pedido" to="/pronostico" label="Ver pronóstico" />
+      {data?.run ? (
+        <>
+          <ul className="forecast-mini">
+            {data.items.map((i) => (
+              <li key={i.id}>
+                <Link to={`/productos/${i.id}?tab=pronostico`} className="small"><strong>{i.sku}</strong> {i.name}</Link>
+                <span className="forecast-mini-bars" aria-hidden="true">
+                  {/* Cada fila en su propia escala: se ve si sube o baja. */}
+                  <i className="is-real" style={{ width: `${(i.last4 / Math.max(1, i.last4, i.next4)) * 100}%` }} />
+                  <i className="is-pred" style={{ width: `${(i.next4 / Math.max(1, i.last4, i.next4)) * 100}%` }} />
+                </span>
+                <span className="small num"><span className="forecast-num">{formatNumber(Math.round(i.next4))}</span> {i.unit} · {formatChange(i.changePct)}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="legend-inline small">
+            <span><i className="sw sw-real" /> Últimas 4 semanas</span>
+            <span><i className="sw sw-pred" /> Próximas 4</span>
+          </div>
+          <p className="muted small">Precisión {formatPct(accuracyFromWape(data.run.overallWape), 0)} · versión v{data.run.version}</p>
+        </>
+      ) : (
+        <>
+          <div className="forecast-preview" aria-hidden="true">
+            <svg viewBox="0 0 300 140" preserveAspectRatio="none">
+              <path d="M0 100 C 20 90, 30 60, 50 70 S 80 105, 100 85 S 130 40, 150 55 S 180 95, 200 80" fill="none" stroke="var(--chart-bar-strong)" strokeWidth="2.5" />
+              <path d="M200 80 S 240 45, 260 50 S 290 30, 300 25" fill="none" stroke="var(--forecast)" strokeWidth="2.5" strokeDasharray="6 6" />
+            </svg>
+          </div>
+          <p className="muted small">{data ? 'Todavía no hay pronóstico: carga el historial de ventas y entrena el modelo en Pronóstico › Modelos.' : 'Cargando…'}</p>
+        </>
+      )}
     </section>
   )
 }
@@ -267,7 +301,7 @@ function ActivityCard({ items }: { items: NonNullable<DashboardSummary['activity
                 <td data-label="Qué">
                   <span className="cell-with-icon">
                     <span className={`cell-icon kind-${a.entityType}`} aria-hidden="true">
-                      <Icon name={a.entityType === 'product' ? 'box' : a.entityType === 'category' ? 'tag' : 'users'} size={16} />
+                      <Icon name={ENTITY_ICONS[a.entityType] ?? 'clipboard'} size={16} />
                     </span>
                     <strong>{ACTION_LABELS[a.action] ?? a.action}</strong>
                   </span>
@@ -372,16 +406,37 @@ function TeamCard({ team }: { team: NonNullable<DashboardSummary['team']> }) {
   )
 }
 
-function StockAlertsPreview() {
+/** HU-16: las alertas abiertas más recientes. */
+function StockAlertsCard() {
+  const [alerts, setAlerts] = useState<Page<StockAlert> | null>(null)
+  useEffect(() => {
+    api<Page<StockAlert>>('/alerts?status=active&limit=4').then(setAlerts).catch(() => undefined)
+  }, [])
   return (
     <section className="card dash-card team-card">
-      <CardHead title="Alertas de stock" subtitle="Productos bajo su punto de reorden" />
-      <div className="soon-panel">
-        <span className="icon-btn is-soft" aria-hidden="true"><Icon name="bell" size={20} /></span>
-        <p className="small">
-          Llega en el <strong>sprint 5</strong>: te avisaremos aquí cuando un producto se esté agotando.
-        </p>
+      <CardHead title="Alertas de stock" subtitle="Productos en su punto de reorden o por debajo" to="/alertas" label="Ver alertas" />
+      <div className="stat-row">
+        <strong className="stat-value big">{alerts?.total ?? '—'}</strong>
+        <span className={`chip ${alerts?.total ? 'chip-forecast' : 'chip-soft'}`}>pendientes</span>
       </div>
+      {alerts && alerts.items.length > 0 ? (
+        <ul className="alert-mini">
+          {alerts.items.map((a) => (
+            <li key={a.id}>
+              <Link to={`/productos/${a.product.id}`}>
+                <strong>{a.product.name}</strong>
+                <span className="muted small">{formatNumber(a.currentStock)} de {formatNumber(a.reorderPoint)} · {a.product.sku}</span>
+              </Link>
+              {a.status === 'OPEN' && <span className="dot" aria-label="Nueva" />}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="soon-panel">
+          <span className="icon-btn is-soft" aria-hidden="true"><Icon name="bell" size={20} /></span>
+          <p className="small">Todo en orden: ningún producto está bajo su punto de reorden.</p>
+        </div>
+      )}
     </section>
   )
 }

@@ -1,0 +1,10 @@
+# Servicio de pronóstico (HU-18 en adelante). Versiones probadas en este proyecto.
+fastapi==0.143.0
+uvicorn[standard]==0.53.0
+psycopg[binary]==3.3.6
+pandas==3.0.5
+numpy==2.5.3
+tzdata==2026.5
+# Modelo propio del asistente (HU-33)
+scikit-learn==1.9.1
+joblib==1.6.0

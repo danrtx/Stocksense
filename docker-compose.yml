@@ -40,12 +40,34 @@ services:
       SMTP_PORT: 1025
       FRONTEND_URL: http://localhost:${WEB_PORT:-8080}
       CORS_ORIGIN: http://localhost:${WEB_PORT:-8080}
+      FORECAST_URL: http://forecast:8000
+      FORECAST_TOKEN: ${FORECAST_TOKEN:-cambia-este-token-interno}
+      # Sprint 7: Gemini. Sin clave, la app funciona igual y sin las funciones de IA.
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-pro-preview}
     ports:
       - "${API_PORT:-3000}:3000"
     depends_on:
       db:
         condition: service_healthy
       mailpit:
+        condition: service_started
+
+  # Servicio de pronóstico y del modelo del asistente en Python (HU-18, HU-19, HU-22, HU-33).
+  # No se publica fuera de la red interna. Toma los trabajos de la cola ml_jobs.
+  forecast:
+    build: ./forecast
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-stocksense}:${POSTGRES_PASSWORD:-stocksense}@db:5432/${POSTGRES_DB:-stocksense}
+      FORECAST_TOKEN: ${FORECAST_TOKEN:-cambia-este-token-interno}
+      PIPELINE_DAILY_AT: ${PIPELINE_DAILY_AT:-02:00}
+      # Avisos de falla del reentrenamiento (T-22.3). Vacío = las personas administradoras.
+      TECH_ALERT_EMAILS: ${TECH_ALERT_EMAILS:-}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      FRONTEND_URL: http://localhost:${WEB_PORT:-8080}
+    depends_on:
+      backend:
         condition: service_started
 
   frontend:

@@ -14,4 +14,3 @@ if (!process.env.DATABASE_URL) {
 export const AppDataSource = new DataSource(
   buildTypeOrmOptions(process.env.DATABASE_URL, process.env.DB_SSL),
 );
-export default AppDataSource;

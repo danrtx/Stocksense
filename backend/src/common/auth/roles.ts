@@ -22,6 +22,15 @@ export enum Permission {
   PurchasesWrite = 'purchases:write',
   ReportsRead = 'reports:read',
   ForecastRead = 'forecast:read',
+  WarehousesManage = 'warehouses:manage',
+  CountsApprove = 'counts:approve',
+  PurchasesReceive = 'purchases:receive',
+  SalesImport = 'sales:import',
+  IntegrationsManage = 'integrations:manage',
+  AlertsRead = 'alerts:read',
+  ForecastRun = 'forecast:run',
+  /** Sprints 6 a 8: ajustes de IA, consumo de Gemini y modelo del asistente. */
+  AiManage = 'ai:manage',
 }
 
 export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
@@ -33,9 +42,17 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     Permission.StockRead,
     Permission.PurchasesRead,
     Permission.PurchasesWrite,
+    Permission.PurchasesReceive,
     Permission.ForecastRead,
+    Permission.AlertsRead,
   ],
-  [Role.Bodega]: [Permission.ProductsRead, Permission.StockRead, Permission.StockWrite],
+  [Role.Bodega]: [
+    Permission.ProductsRead,
+    Permission.StockRead,
+    Permission.StockWrite,
+    Permission.PurchasesReceive,
+    Permission.AlertsRead,
+  ],
   [Role.Analista]: [
     Permission.ProductsRead,
     Permission.ProductsCostRead,
@@ -43,6 +60,8 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     Permission.PurchasesRead,
     Permission.ReportsRead,
     Permission.ForecastRead,
+    Permission.ForecastRun,
+    Permission.SalesImport,
   ],
 };
 

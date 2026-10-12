@@ -4,23 +4,34 @@ import { ROLE_LABELS, type Permission } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { useTheme } from '../theme/ThemeContext'
 import { initials } from '../lib/format'
+import { AlertsBell } from './AlertsBell'
+import { AssistantChat } from './AssistantChat'
 import { BrandLockup } from './Brand'
 import { Icon, type IconName } from './Icon'
 
 interface NavItem {
   to: string
   label: string
-  permission?: Permission
+  /** Se muestra si el rol tiene al menos uno de estos permisos. */
+  anyOf?: Permission[]
   soon?: boolean
 }
 
 const NAV: NavItem[] = [
   { to: '/', label: 'Panel' },
-  { to: '/productos', label: 'Productos', permission: 'products:read' },
-  { to: '/compras', label: 'Compras', permission: 'purchases:read', soon: true },
-  { to: '/reportes', label: 'Reportes', permission: 'reports:read', soon: true },
-  { to: '/usuarios', label: 'Usuarios', permission: 'users:manage' },
-  { to: '/auditoria', label: 'Auditoría', permission: 'audit:read' },
+  { to: '/productos', label: 'Productos', anyOf: ['products:read'] },
+  { to: '/inventario', label: 'Inventario', anyOf: ['stock:read'] },
+  { to: '/compras', label: 'Compras', anyOf: ['purchases:read', 'purchases:receive'] },
+  { to: '/ventas', label: 'Ventas', anyOf: ['sales:import', 'integrations:manage'] },
+  { to: '/pronostico', label: 'Pronóstico', anyOf: ['forecast:read'] },
+  { to: '/reportes', label: 'Reportes', anyOf: ['reports:read'], soon: true },
+]
+
+/** Administración: va en el menú de la cuenta para que la barra no se desborde. */
+const ADMIN_NAV: (NavItem & { icon: IconName })[] = [
+  { to: '/usuarios', label: 'Usuarios', anyOf: ['users:manage'], icon: 'users' },
+  { to: '/auditoria', label: 'Auditoría', anyOf: ['audit:read'], icon: 'clipboard' },
+  { to: '/configuracion/ia', label: 'Configuración de IA', anyOf: ['ai:manage'], icon: 'settings' },
 ]
 
 interface RailItem {
@@ -33,8 +44,12 @@ interface RailItem {
 /** Accesos rápidos del riel izquierdo (en pantallas medianas se ocultan). */
 const RAIL: RailItem[] = [
   { to: '/', label: 'Panel', icon: 'grid' },
+  { to: '/inventario/registrar', label: 'Registrar entrada o salida', icon: 'swap', permission: 'stock:write' },
   { to: '/productos?nuevo=1', label: 'Nuevo producto', icon: 'plus', permission: 'products:write' },
-  { to: '/productos', label: 'Catálogo', icon: 'box', permission: 'products:read' },
+  { to: '/inventario', label: 'Stock actual', icon: 'box', permission: 'stock:read' },
+  { to: '/compras/ordenes/nueva', label: 'Nueva orden de compra', icon: 'cart', permission: 'purchases:write' },
+  { to: '/pronostico', label: 'Pronóstico de demanda', icon: 'trend', permission: 'forecast:read' },
+  { to: '/alertas', label: 'Alertas de stock', icon: 'bell', permission: 'alerts:read' },
   { to: '/usuarios?invitar=1', label: 'Invitar usuario', icon: 'userPlus', permission: 'users:manage' },
   { to: '/auditoria', label: 'Auditoría', icon: 'clipboard', permission: 'audit:read' },
 ]
@@ -59,7 +74,7 @@ export function Layout() {
         </Link>
 
         <nav className="nav-pills" aria-label="Secciones">
-          {NAV.filter((item) => !item.permission || can(item.permission)).map((item) => (
+          {NAV.filter((item) => !item.anyOf || item.anyOf.some((p) => can(p))).map((item) => (
             <NavLink key={item.to} to={item.to} end={item.to === '/'} className={({ isActive }) => `nav-pill ${isActive ? 'is-active' : ''}`}>
               {item.label}
               {item.soon && <span className="tag">Pronto</span>}
@@ -69,6 +84,7 @@ export function Layout() {
 
         <div className="topbar-actions">
           {can('products:read') && <ProductSearch />}
+          {can('alerts:read') && <AlertsBell />}
           <button className="icon-btn" onClick={toggle} aria-label={themeLabel} title={themeLabel}>
             <Icon name={theme === 'dark' ? 'sun' : 'moon'} />
           </button>
@@ -76,6 +92,7 @@ export function Layout() {
             name={user.fullName}
             email={user.email}
             role={ROLE_LABELS[user.role]}
+            links={ADMIN_NAV.filter((item) => !item.anyOf || item.anyOf.some((p) => can(p)))}
             onLogout={() => logout()}
           />
         </div>
@@ -108,6 +125,8 @@ export function Layout() {
       <main className="main" id="contenido">
         <Outlet />
       </main>
+
+      <AssistantChat />
     </div>
   )
 }
@@ -157,7 +176,19 @@ function ProductSearch() {
   )
 }
 
-function UserMenu({ name, email, role, onLogout }: { name: string; email: string; role: string; onLogout: () => void }) {
+function UserMenu({
+  name,
+  email,
+  role,
+  links,
+  onLogout,
+}: {
+  name: string
+  email: string
+  role: string
+  links: { to: string; label: string; icon: IconName }[]
+  onLogout: () => void
+}) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -187,6 +218,11 @@ function UserMenu({ name, email, role, onLogout }: { name: string; email: string
             <span className="muted small">{email}</span>
             <div className="muted small">{role}</div>
           </div>
+          {links.map((l) => (
+            <Link key={l.to} className="menu-item" role="menuitem" to={l.to} onClick={() => setOpen(false)}>
+              <Icon name={l.icon} size={18} /> {l.label}
+            </Link>
+          ))}
           <button className="menu-item" role="menuitem" onClick={onLogout}>
             <Icon name="logout" size={18} /> Cerrar sesión
           </button>

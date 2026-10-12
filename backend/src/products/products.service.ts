@@ -1,11 +1,19 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, QueryFailedError, Repository } from 'typeorm';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { Brackets, DataSource, QueryFailedError, Repository } from 'typeorm';
+import { AlertsService } from '../alerts/alerts.service';
 import { AuditService, diff } from '../audit/audit.service';
 import { AuthUser } from '../common/auth/auth-user';
 import { Permission, roleHas } from '../common/auth/roles';
 import { Category } from './category.entity';
-import { CreateCategoryDto, CreateProductDto, ListProductsDto, UpdateProductDto } from './dto';
+import {
+  BulkReorderDto,
+  CreateCategoryDto,
+  CreateProductDto,
+  ListProductsDto,
+  SetReorderDto,
+  UpdateProductDto,
+} from './dto';
 import { Product } from './product.entity';
 
 const SORT_COLUMNS: Record<ListProductsDto['sort'], string> = {
@@ -21,6 +29,8 @@ export class ProductsService {
     @InjectRepository(Product) private readonly products: Repository<Product>,
     @InjectRepository(Category) private readonly categories: Repository<Category>,
     private readonly audit: AuditService,
+    private readonly alerts: AlertsService,
+    @InjectDataSource() private readonly db: DataSource,
   ) {}
 
   /** Listado paginado con búsqueda por nombre o SKU y filtros (T-04.2). */
@@ -121,6 +131,93 @@ export class ProductsService {
     return this.present(await this.get(id), actor);
   }
 
+  /** HU-15: define el punto de reorden y el stock de seguridad de un producto. */
+  async setReorder(id: string, dto: SetReorderDto, actor: AuthUser) {
+    assertSafetyFits(dto);
+    const current = await this.get(id);
+    const patch = { reorderPoint: dto.reorderPoint, safetyStock: dto.safetyStock };
+    const changes = diff(current, patch);
+    if (Object.keys(changes).length > 0) {
+      await this.products.update(id, patch);
+      await this.audit.record({
+        actor,
+        action: 'product.reorder_updated',
+        entityType: 'product',
+        entityId: id,
+        changes,
+      });
+      await this.alerts.evaluateProducts([id]);
+    }
+    return this.present(await this.get(id), actor);
+  }
+
+  /** T-15.2: edición masiva por categoría (o por una lista de productos). */
+  async bulkReorder(dto: BulkReorderDto, actor: AuthUser) {
+    assertSafetyFits(dto);
+    if (!dto.categoryId && !dto.productIds?.length) {
+      throw new BadRequestException('Elige una categoría o selecciona los productos a editar.');
+    }
+    if (dto.categoryId) await this.assertCategory(dto.categoryId);
+    const rows: { id: string }[] = await this.db.query(
+      `UPDATE products SET reorder_point = $1, safety_stock = $2, updated_at = now()
+        WHERE is_active
+          AND ($3::uuid IS NULL OR category_id = $3)
+          AND ($4::uuid[] IS NULL OR id = ANY($4))
+          AND (NOT $5 OR reorder_point IS NULL)
+        RETURNING id`,
+      [dto.reorderPoint, dto.safetyStock, dto.categoryId ?? null, dto.productIds?.length ? dto.productIds : null, dto.onlyEmpty ?? false],
+    ).then((r) => r[0] as { id: string }[]);
+    const ids = rows.map((r) => r.id);
+    await this.audit.record({
+      actor,
+      action: 'product.reorder_bulk_updated',
+      entityType: 'product',
+      changes: {
+        categoryId: dto.categoryId ?? null,
+        products: ids.length,
+        reorderPoint: dto.reorderPoint,
+        safetyStock: dto.safetyStock,
+        onlyEmpty: dto.onlyEmpty ?? false,
+      },
+    });
+    if (ids.length > 0) await this.alerts.evaluateProducts(ids);
+    return { updated: ids.length };
+  }
+
+  /**
+   * T-15.3: sugerencia con la fórmula del punto de reorden:
+   * demanda diaria promedio (últimos 90 días) × días de entrega del proveedor principal + stock de seguridad.
+   */
+  async reorderSuggestion(id: string) {
+    const product = await this.get(id);
+    const [demand] = await this.db.query(
+      `SELECT COALESCE(sum(quantity), 0)::float / 90 AS "avgDailyDemand",
+              count(DISTINCT sold_on)::int AS "daysWithSales"
+         FROM sales WHERE product_id = $1 AND sold_on > CURRENT_DATE - 90`,
+      [id],
+    );
+    const [supplier] = await this.db.query(
+      `SELECT s.name, s.lead_time_days AS "leadTimeDays",
+              (SELECT round(avg(r.lead_time_days), 1)::float FROM purchase_receipts r
+                 JOIN purchase_orders po ON po.id = r.order_id WHERE po.supplier_id = s.id) AS "actualLeadTimeDays"
+         FROM product_suppliers ps JOIN suppliers s ON s.id = ps.supplier_id
+        WHERE ps.product_id = $1 AND ps.is_primary`,
+      [id],
+    );
+    const leadTime = supplier ? (supplier.actualLeadTimeDays ?? supplier.leadTimeDays) : null;
+    const safety = product.safetyStock ?? 0;
+    const avg = Math.round(demand.avgDailyDemand * 1000) / 1000;
+    return {
+      avgDailyDemand: avg,
+      daysWithSales: demand.daysWithSales,
+      supplier: supplier ? { name: supplier.name, leadTimeDays: supplier.leadTimeDays, actualLeadTimeDays: supplier.actualLeadTimeDays } : null,
+      leadTimeDays: leadTime,
+      safetyStock: safety,
+      suggestedReorderPoint: leadTime === null ? null : Math.ceil(avg * leadTime + safety),
+      formula: 'Punto de reorden = demanda diaria promedio × días de entrega + stock de seguridad',
+    };
+  }
+
   listCategories() {
     return this.categories.find({ order: { name: 'ASC' } });
   }
@@ -176,6 +273,14 @@ export class ProductsService {
       return skuTaken(sku);
     }
     return error;
+  }
+}
+
+function assertSafetyFits(dto: { reorderPoint: number; safetyStock: number }) {
+  if (dto.safetyStock > dto.reorderPoint) {
+    throw new BadRequestException(
+      'El stock de seguridad no puede ser mayor que el punto de reorden: el punto de reorden ya lo incluye.',
+    );
   }
 }
 

@@ -48,6 +48,14 @@ jobs:
             ${{ env.IMAGE_PREFIX }}-frontend:staging
             ${{ env.IMAGE_PREFIX }}-frontend:${{ github.event.workflow_run.head_sha }}
 
+      - uses: docker/build-push-action@v6
+        with:
+          context: forecast
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-forecast:staging
+            ${{ env.IMAGE_PREFIX }}-forecast:${{ github.event.workflow_run.head_sha }}
+
       # El proveedor (Render, Railway, un VPS con webhook, etc.) se define al
       # crear el ambiente. Configura el secreto STAGING_DEPLOY_HOOK en
       # Settings > Environments > staging. Sin él, el paso se omite con un aviso.

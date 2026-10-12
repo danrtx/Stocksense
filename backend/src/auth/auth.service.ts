@@ -247,6 +247,22 @@ export class AuthService {
       fullName: user.fullName,
       role: user.role,
       permissions: permissionsFor(user.role as Role),
+      preferences: { notifyStockAlertsEmail: user.notifyStockAlertsEmail },
     };
+  }
+
+  /** HU-16: cada persona decide si recibe las alertas de stock bajo por correo. */
+  async updatePreferences(actor: AuthUser, prefs: { notifyStockAlertsEmail?: boolean }) {
+    if (prefs.notifyStockAlertsEmail !== undefined) {
+      await this.users.update(actor.id, { notifyStockAlertsEmail: prefs.notifyStockAlertsEmail });
+      await this.audit.record({
+        actor,
+        action: 'user.preferences_updated',
+        entityType: 'user',
+        entityId: actor.id,
+        changes: { notifyStockAlertsEmail: prefs.notifyStockAlertsEmail },
+      });
+    }
+    return this.me(actor);
   }
 }
