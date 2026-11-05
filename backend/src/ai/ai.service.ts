@@ -6,7 +6,8 @@ import { AuthUser } from '../common/auth/auth-user';
 import { SettingsService } from '../settings/settings.service';
 import { GeminiClient, GeminiError, GeminiRequest, GeminiResult } from './gemini.client';
 
-export type AiFeature = 'EXPLAIN' | 'ASSISTANT';
+export type AiFeature = 'EXPLAIN' | 'ASSISTANT' | 'ANOMALY' | 'DATA_CHAT';
+export const AI_FEATURES: AiFeature[] = ['EXPLAIN', 'ASSISTANT', 'ANOMALY', 'DATA_CHAT'];
 
 export class AiLimitError extends Error {
   constructor(
@@ -102,6 +103,15 @@ export class AiService {
     }
   }
 
+  /** Registro de una consulta que hizo varias llamadas (HU-25): una fila con los tokens sumados. */
+  recordUsage(
+    user: AuthUser,
+    feature: AiFeature,
+    data: { status: string; promptTokens?: number; outputTokens?: number; latencyMs?: number; detail?: string; model?: string },
+  ) {
+    return this.record(user, feature, data);
+  }
+
   costUsd(promptTokens: number, outputTokens: number): number {
     const input = Number(this.config.get('GEMINI_PRICE_INPUT_PER_M') ?? 2);
     const output = Number(this.config.get('GEMINI_PRICE_OUTPUT_PER_M') ?? 12);
@@ -153,7 +163,9 @@ export class AiService {
               COALESCE(sum(a.prompt_tokens + a.output_tokens), 0)::int AS tokens,
               COALESCE(sum(a.cost_usd), 0)::float AS "costUsd",
               count(*) FILTER (WHERE a.feature = 'EXPLAIN')::int AS explain,
-              count(*) FILTER (WHERE a.feature = 'ASSISTANT')::int AS assistant
+              count(*) FILTER (WHERE a.feature = 'ASSISTANT')::int AS assistant,
+              count(*) FILTER (WHERE a.feature = 'ANOMALY')::int AS anomaly,
+              count(*) FILTER (WHERE a.feature = 'DATA_CHAT')::int AS "dataChat"
          FROM ai_usage a JOIN users u ON u.id = a.user_id
         WHERE a.created_at >= ${MONTH_START}
         GROUP BY u.id ORDER BY calls DESC LIMIT 50`,
@@ -177,18 +189,21 @@ export class AiService {
     };
   }
 
-  async feedback(user: AuthUser, data: { feature: AiFeature; targetId?: string; content: string; comment?: string }) {
+  async feedback(
+    user: AuthUser,
+    data: { feature: AiFeature; targetId?: string; content: string; comment?: string; rating?: 1 | -1 },
+  ) {
     const [row] = await this.db.query(
-      `INSERT INTO ai_feedback (user_id, feature, target_id, content, comment) VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO ai_feedback (user_id, feature, target_id, content, comment, rating) VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id, created_at AS "createdAt"`,
-      [user.id, data.feature, data.targetId ?? null, data.content.slice(0, 4000), data.comment?.slice(0, 500) ?? null],
+      [user.id, data.feature, data.targetId ?? null, data.content.slice(0, 4000), data.comment?.slice(0, 500) ?? null, data.rating ?? null],
     );
     return row;
   }
 
   listFeedback() {
     return this.db.query(
-      `SELECT f.id, f.feature, f.target_id AS "targetId", f.content, f.comment, f.created_at AS "createdAt",
+      `SELECT f.id, f.feature, f.target_id AS "targetId", f.content, f.comment, f.rating, f.created_at AS "createdAt",
               u.full_name AS "user"
          FROM ai_feedback f LEFT JOIN users u ON u.id = f.user_id
         ORDER BY f.created_at DESC LIMIT 30`,

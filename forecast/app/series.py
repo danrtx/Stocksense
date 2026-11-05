@@ -31,11 +31,27 @@ def last_complete_week(today: date) -> date:
     return week_start(today) - timedelta(days=7)
 
 
+def data_end_week(last_sale: date | None, today: date) -> date:
+    """Última semana con datos del negocio.
+
+    Normalmente es la última semana completa. Pero si en esa semana no hay ninguna venta de
+    ningún producto, lo más probable es que todavía no se hayan cargado las ventas (no que el
+    negocio no vendiera nada): los datos terminan en la última semana con ventas. Esa semana
+    cuenta como completa si hay ventas hasta el sábado o el domingo; si no, se usa la anterior.
+    """
+    last = last_complete_week(today)
+    if last_sale is None or last_sale >= last:
+        return last
+    end = week_start(last_sale) if last_sale.weekday() >= 5 else week_start(last_sale) - timedelta(days=7)
+    return min(end, last)
+
+
 def build_weekly_series(
     daily: pd.DataFrame,
     product_ids: list[str],
     today: date,
     min_weeks: int = 12,
+    end_week: date | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Convierte ventas diarias en series semanales sin huecos.
 
@@ -44,7 +60,7 @@ def build_weekly_series(
       weekly: product_id, week_start, quantity
       series: product_id, first_week, last_week, weeks_of_history, total_quantity, status
     """
-    last_week = last_complete_week(today)
+    last_week = end_week or last_complete_week(today)
     cutoff = last_week + timedelta(days=6)
 
     weekly_frames: list[pd.DataFrame] = []

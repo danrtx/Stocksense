@@ -49,6 +49,8 @@ export const ACTION_LABELS: Record<string, string> = {
   'api_key.revoked': 'Clave de API revocada',
   'forecast.pipeline_run': 'Datos del modelo preparados',
   'demo.seeded': 'Datos de demostración cargados',
+  'report.exported': 'Reporte exportado',
+  'anomaly.status_changed': 'Anomalía revisada',
 }
 
 const FIELD_LABELS: Record<string, string> = {
@@ -68,6 +70,13 @@ const FIELD_LABELS: Record<string, string> = {
   ip: 'IP',
   reorderPoint: 'Punto de reorden',
   safetyStock: 'Stock de seguridad',
+  report: 'Reporte',
+  format: 'Formato',
+  filters: 'Filtros',
+  ms: 'Milisegundos',
+  product: 'Producto',
+  week: 'Semana',
+  note: 'Nota',
   leadTimeDays: 'Días de entrega',
   contactName: 'Contacto',
   phone: 'Teléfono',

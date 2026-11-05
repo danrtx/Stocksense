@@ -33,7 +33,7 @@ Cuando termine de arrancar (la primera vez tarda unos minutos mientras descarga 
 
 Entra con el administrador que definiste en `.env` (por defecto `admin@stocksense.local` / `CambiaEsta2026`). **Cambia esa contraseña y el `JWT_SECRET` antes de usarlo con datos reales.**
 
-¿Quieres verlo con datos? Con todo encendido, en otra terminal: `docker compose exec backend npm run seed:demo` (36 productos, 3 bodegas, 4 proveedores, 18 meses de ventas, alertas y órdenes de compra).
+¿Quieres verlo con datos? Con todo encendido, en otra terminal: `docker compose exec backend npm run seed:demo` (36 productos, 3 bodegas, 4 proveedores, 18 meses de ventas, alertas, órdenes de compra y una cuenta por rol: `marta@demo.co` Compras, `bruno@demo.co` Bodega y `lina@demo.co` Analista, todas con la clave `ClaveSegura2026`). Si lo vuelves a correr no duplica datos: restablece la clave de esas tres cuentas, completa las ventas que falten hasta ayer (así la demo no queda vieja) y, la primera vez, siembra tres casos raros para la bandeja de anomalías. Después pulsa Pronóstico › Modelos › «Reentrenar ahora».
 
 Para apagar todo: `Ctrl + C` y luego `docker compose down`. Para borrar también la base de datos: `docker compose down -v`.
 
@@ -151,6 +151,8 @@ docs/              decisiones, roles y ambientes
 - [Entrega del Sprint 1](docs/sprint-1.md)
 - [Entrega de los sprints 2 a 5](docs/sprints-2-a-5.md)
 - [Entrega de los sprints 6 a 8](docs/sprints-6-a-8.md)
+- [Entrega del sprint 9: reportes, anomalías y preguntas al inventario](docs/sprint-9.md)
+- [Rediseño del formulario de movimientos](docs/rediseno-formularios.md)
 - [Pronóstico, Gemini y asistente: cómo funcionan](docs/pronostico-e-ia.md)
 - [Fórmulas de los KPIs](docs/kpis.md)
 - [Servicio de pronóstico](forecast/README.md)

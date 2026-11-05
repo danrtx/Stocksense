@@ -114,8 +114,11 @@ export function uploadFile<T>(
   })
 }
 
-/** Descarga un archivo protegido (por ejemplo, el PDF de una orden). */
-export async function downloadFile(path: string, fileName: string): Promise<void> {
+/**
+ * Descarga un archivo protegido (por ejemplo, el PDF de una orden). Si no se da un nombre,
+ * se usa el que manda la API en Content-Disposition. Devuelve el nombre usado.
+ */
+export async function downloadFile(path: string, fileName?: string): Promise<string> {
   const headers = new Headers()
   const token = tokenStore.get()
   if (token) headers.set('Authorization', `Bearer ${token}`)
@@ -126,7 +129,10 @@ export async function downloadFile(path: string, fileName: string): Promise<void
     const body = await response.json().catch(() => ({}))
     throw new ApiError(response.status, body?.message ?? 'No se pudo descargar el archivo.')
   }
-  saveBlob(await response.blob(), fileName)
+  const fromHeader = /filename="([^"]+)"/.exec(response.headers.get('Content-Disposition') ?? '')?.[1]
+  const name = fileName ?? fromHeader ?? 'archivo'
+  saveBlob(await response.blob(), name)
+  return name
 }
 
 export function saveBlob(blob: Blob, fileName: string) {

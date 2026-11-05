@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
-import { ROLE_LABELS, UNIT_LABELS, type DashboardSummary, type ForecastRunInfo, type ForecastSummaryRow } from '../api/types'
+import { ROLE_LABELS, UNIT_LABELS, type DashboardSummary, type ForecastRunInfo, type ForecastSummaryRow, type RecentAccuracy } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { Icon, type IconName } from '../components/Icon'
-import { Alert } from '../components/ui'
+import { Alert, InfoTip } from '../components/ui'
 import { KpiSection } from '../components/KpiSection'
 import type { StockAlert } from '../api/types'
 import type { Page } from '../api/client'
@@ -236,8 +236,10 @@ function CategoryChart({ data, showCost }: { data: DashboardSummary; showCost: b
 /** HU-19 en el panel: lo que más se espera vender y qué tan acertado viene el modelo. */
 function ForecastPreview() {
   const [data, setData] = useState<{ run: ForecastRunInfo | null; items: ForecastSummaryRow[] } | null>(null)
+  const [recent, setRecent] = useState<RecentAccuracy | null>(null)
   useEffect(() => {
     api<{ run: ForecastRunInfo | null; items: ForecastSummaryRow[] }>('/forecast/summary?limit=5').then(setData).catch(() => setData({ run: null, items: [] }))
+    api<RecentAccuracy>('/forecast/recent-accuracy').then(setRecent).catch(() => undefined)
   }, [])
   return (
     <section className="card dash-card forecast-card">
@@ -261,7 +263,24 @@ function ForecastPreview() {
             <span><i className="sw sw-real" /> Últimas 4 semanas</span>
             <span><i className="sw sw-pred" /> Próximas 4</span>
           </div>
-          <p className="muted small">Precisión {formatPct(accuracyFromWape(data.run.overallWape), 0)} · versión v{data.run.version}</p>
+          <div className="accuracy-strip">
+            <div>
+              <span className="small muted">
+                Precisión, últimas 4 semanas
+                <InfoTip label="la precisión de las últimas 4 semanas">
+                  {recent?.source === 'TRACKED'
+                    ? 'Cada semana se compara con lo que el pronóstico decía antes de que empezara. Precisión = 100 % − error.'
+                    : 'Lo que el modelo vigente habría pronosticado una semana antes en cada una de las últimas 4 semanas, frente a lo vendido. Cuando haya versiones anteriores se usará el pronóstico que se tenía en su momento.'}
+                </InfoTip>
+              </span>
+              <strong className="accuracy-value">{formatPct(recent?.accuracy, 0)}</strong>
+            </div>
+            <div>
+              <span className="small muted">General (13 semanas)</span>
+              <strong>{formatPct(accuracyFromWape(data.run.overallWape), 0)}</strong>
+            </div>
+            <span className="small muted">Versión v{data.run.version}</span>
+          </div>
         </>
       ) : (
         <>

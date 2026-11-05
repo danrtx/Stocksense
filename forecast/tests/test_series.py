@@ -2,7 +2,7 @@ from datetime import date
 
 import pandas as pd
 
-from app.series import INSUFFICIENT, READY, build_weekly_series, last_complete_week, week_start
+from app.series import INSUFFICIENT, READY, build_weekly_series, data_end_week, last_complete_week, week_start
 
 TODAY = date(2026, 10, 7)  # miércoles; última semana completa: lunes 28-sep
 
@@ -59,3 +59,18 @@ def test_venta_solo_en_la_semana_actual_no_cuenta_aun():
     weekly, series = build_weekly_series(daily([("a", date(2026, 10, 5), 4)]), ["a"], TODAY)
     assert weekly.empty
     assert series.iloc[0].weeks_of_history == 0
+
+
+def test_si_no_hay_ventas_cargadas_los_datos_terminan_en_la_ultima_semana_con_ventas():
+    # Hoy es miércoles 7-oct; la última semana completa es la del 28-sep.
+    assert data_end_week(date(2026, 10, 3), TODAY) == date(2026, 9, 28)  # hay ventas el sábado 3-oct: normal
+    assert data_end_week(date(2026, 9, 19), TODAY) == date(2026, 9, 14)  # última venta un sábado: esa semana cuenta
+    assert data_end_week(date(2026, 9, 16), TODAY) == date(2026, 9, 7)  # se cortó un miércoles: semana incompleta
+    assert data_end_week(None, TODAY) == date(2026, 9, 28)
+
+
+def test_las_semanas_sin_ventas_cargadas_no_se_rellenan_con_cero():
+    data = daily([("a", date(2026, 9, 1), 2), ("a", date(2026, 9, 12), 3)])
+    weekly, series = build_weekly_series(data, ["a"], TODAY, end_week=data_end_week(date(2026, 9, 12), TODAY))
+    assert list(weekly["week_start"]) == [date(2026, 8, 31), date(2026, 9, 7)]
+    assert series.iloc[0]["last_week"] == date(2026, 9, 7)

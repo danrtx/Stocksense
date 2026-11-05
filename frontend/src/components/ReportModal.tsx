@@ -10,7 +10,7 @@ export function ReportModal({
   onClose,
   onSent,
 }: {
-  feature: 'EXPLAIN' | 'ASSISTANT'
+  feature: 'EXPLAIN' | 'ASSISTANT' | 'ANOMALY' | 'DATA_CHAT'
   targetId?: string
   content: string
   onClose: () => void

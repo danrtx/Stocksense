@@ -73,3 +73,27 @@ export const accuracyFromWape = (wape: number | null | undefined) =>
 /** Semana «12 oct» a partir de AAAA-MM-DD. */
 export const formatWeek = (value: string) =>
   new Date(`${value.slice(0, 10)}T12:00:00`).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }).replace('.', '')
+
+/** Celda de una tabla de reporte o de una fuente del chat, según el tipo de columna. */
+export function formatCell(value: unknown, type: string): string {
+  if (value === null || value === undefined || value === '') return '—'
+  switch (type) {
+    case 'qty':
+    case 'number':
+      return typeof value === 'number' ? formatQty(value) : String(value)
+    case 'money':
+      return typeof value === 'number' ? formatMoney(Math.round(value)) : String(value)
+    case 'pct':
+      return typeof value === 'number' ? formatPct(value) : String(value)
+    case 'date':
+      return formatDateOnly(String(value))
+    case 'datetime':
+      return formatDate(String(value))
+    case 'bool':
+      return value ? 'Sí' : 'No'
+    default:
+      return String(value)
+  }
+}
+
+export const NUMERIC_TYPES = new Set(['qty', 'number', 'money', 'pct'])

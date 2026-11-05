@@ -13,13 +13,15 @@ interface Props {
   invalid?: boolean
   describedBy?: string
   id?: string
+  /** La etiqueta visible la pone quien usa el buscador (por ejemplo, la pregunta de una sección). */
+  externalLabel?: boolean
 }
 
 /**
  * Buscador de productos por nombre o SKU con lista desplegable accesible (combobox).
  * Pensado para escribir rápido desde el celular: basta con 2 letras.
  */
-export function ProductPicker({ label, value, onChange, exclude = [], placeholder, autoFocus, invalid, describedBy, id }: Props) {
+export function ProductPicker({ label, value, onChange, exclude = [], placeholder, autoFocus, invalid, describedBy, id, externalLabel }: Props) {
   const autoId = useId()
   const inputId = id ?? `pp-${autoId}`
   const listId = `${inputId}-list`
@@ -84,7 +86,7 @@ export function ProductPicker({ label, value, onChange, exclude = [], placeholde
 
   return (
     <div className="picker">
-      <label htmlFor={inputId}>{label}</label>
+      {!externalLabel && <label htmlFor={inputId}>{label}</label>}
       <input
         ref={inputRef}
         id={inputId}

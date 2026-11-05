@@ -1,0 +1,141 @@
+/* Sprint 9: Reportes (HU-28), Anomalías (HU-26), Preguntar (HU-25) y precisión reciente (T-28.3). */
+
+.spinner { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin 700ms linear infinite; flex: none; }
+
+/* ------------------------------------------------------------- Reportes */
+.report-picker { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.report-option {
+  position: relative; display: grid; grid-template-columns: auto 1fr; column-gap: 12px; row-gap: 2px; align-items: center;
+  margin: 0; padding: 16px; border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); cursor: pointer;
+  font-weight: 400; font-size: 1rem; border: 2px solid transparent;
+  transition: border-color var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
+}
+.report-option:hover { border-color: var(--border); }
+.report-option:active { transform: scale(0.99); }
+.report-option:has(:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
+.report-option:has(:checked) { border-color: var(--primary); }
+.report-option .report-icon { grid-row: span 2; display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--mint-soft); color: var(--text); transition: background-color var(--dur-2), color var(--dur-2); }
+.report-option:has(:checked) .report-icon { background: var(--primary); color: var(--on-primary); }
+.report-option strong { line-height: 1.2; }
+.report-option .small { line-height: 1.3; }
+
+.report-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 14px; padding: 16px 18px; margin-bottom: 16px; }
+.report-filters .field { flex: 1 1 160px; min-width: 0; }
+.report-filters .field label { margin: 0 0 6px; font-size: 0.82rem; color: var(--text-muted); }
+.report-check { margin: 0 0 12px; flex: 0 0 auto; }
+.report-actions { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+
+.report-preview { padding: 18px 18px 8px; transition: opacity var(--dur-2); }
+.report-preview.is-loading { opacity: 0.6; }
+.report-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.report-head p { max-width: 80ch; margin-top: 4px; }
+.report-count { padding: 4px 12px; border-radius: 999px; background: var(--surface-3); border: 1px solid var(--border); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.report-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 10px; }
+.report-meta .chip { font-weight: 600; }
+.report-table { box-shadow: none; padding: 0; max-height: 560px; overflow: auto; }
+.report-table thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.report-table td.code { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: 0.85rem; }
+.report-table tfoot td { font-weight: 700; background: var(--mint-soft); border-top: 2px solid var(--primary); }
+
+/* ------------------------------------------------------------- Anomalías */
+.status-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 16px; }
+.status-tab { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); font: inherit; font-weight: 600; cursor: pointer; }
+.status-tab .count { min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; display: inline-grid; place-items: center; font-size: 0.78rem; background: var(--surface-3); color: var(--text); font-variant-numeric: tabular-nums; }
+.status-tab.is-active { background: var(--primary); color: var(--on-primary); border-color: transparent; }
+.status-tab.is-active .count { background: rgb(255 255 255 / 20%); color: inherit; }
+.status-tabs-note { margin-left: auto; }
+
+.toast-inline { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; padding: 10px 10px 10px 16px; border-radius: 14px; background: var(--text); color: var(--bg); animation: card-in var(--dur-3) var(--ease-out); }
+.toast-inline span { flex: 1; }
+.toast-inline .link-btn { color: var(--mint); display: inline-flex; align-items: center; gap: 4px; }
+.toast-inline .icon-btn { color: inherit; width: 34px; height: 34px; }
+
+.anomaly-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.anomaly-card { display: grid; gap: 14px; padding: 18px 20px; animation: card-in var(--dur-3) var(--ease-out); }
+.anomaly-head { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.anomaly-head h2 { margin: 8px 0 2px; font-size: 1.1rem; }
+.anomaly-figure { display: grid; justify-items: end; align-content: start; font-variant-numeric: tabular-nums; }
+.anomaly-figure strong { font-size: 2rem; line-height: 1; }
+.anomaly-spark { margin: 0; display: grid; gap: 4px; }
+.anomaly-spark svg { width: 100%; height: 72px; overflow: visible; }
+.spark-band { fill: var(--mint-soft); }
+.spark-line { fill: none; stroke: var(--chart-bar-strong); stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.spark-dot { stroke: var(--danger); stroke-width: 10; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.anomaly-explain { padding: 14px 16px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface-3); animation: card-in var(--dur-3) var(--ease-out); }
+.anomaly-explain > p { margin: 8px 0; }
+.rules-label { display: inline-flex; align-items: center; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); padding: 3px 10px; border-radius: 999px; }
+.hypotheses { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.hypotheses li { display: grid; gap: 2px; }
+.hypotheses strong { font-weight: 600; }
+.anomaly-explain-foot { display: flex; gap: 12px; margin-top: 10px; }
+.anomaly-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.anomaly-status { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 12px; border-top: 1px dashed var(--border); color: var(--text-muted); }
+.anomaly-note { display: grid; gap: 8px; max-width: 560px; }
+.anomaly-note label { margin: 0; }
+.anomalies-empty { padding: 28px; color: var(--text-muted); }
+.anomalies-empty .icon { color: var(--success); }
+
+/* ------------------------------------------------------------- Panel: precisión reciente */
+.accuracy-strip { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--border); }
+.accuracy-strip > div { display: grid; gap: 2px; }
+.accuracy-strip strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.accuracy-strip .accuracy-value { font-size: 1.7rem; line-height: 1.1; }
+.accuracy-strip > .small:last-child { margin-left: auto; }
+.accuracy-strip .infotip { margin-left: 4px; }
+
+/* ------------------------------------------------------------- Preguntar */
+.ask { max-width: 900px; margin: 0 auto; }
+.ask-panel { display: flex; flex-direction: column; min-height: min(70vh, 720px); padding: 0; overflow: hidden; }
+.ask-list { flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 22px; overflow-y: auto; max-height: 68vh; }
+.ask-empty { margin: auto; max-width: 520px; text-align: center; display: grid; justify-items: center; gap: 12px; padding: 24px 8px; }
+.ask-empty-icon { display: inline-grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--hatch), var(--receipt-bg); color: var(--receipt-mint); }
+.ask-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: inherit; }
+.ask-empty .ask-chips { justify-content: center; }
+.ask-msg { max-width: 86%; padding: 12px 16px; border-radius: 20px; line-height: 1.5; animation: card-in var(--dur-3) var(--ease-out); }
+.ask-msg p { margin: 0; }
+.ask-msg.is-user { align-self: flex-end; background: var(--primary); color: var(--on-primary); border-bottom-right-radius: 6px; }
+.ask-msg.is-bot { align-self: flex-start; display: grid; gap: 10px; background: var(--surface-3); border: 1px solid var(--border); border-bottom-left-radius: 6px; }
+.ask-msg.status-out_of_scope, .ask-msg.status-unavailable, .ask-msg.status-limit { background: var(--info-soft); }
+.ask-msg.status-unverified, .ask-msg.status-failed { background: var(--warning-soft); }
+.ask-text { display: grid; gap: 8px; }
+.ask-text ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.ask-sources { display: grid; gap: 6px; }
+.ask-source { border-radius: 14px; border: 1px solid var(--border); background: var(--surface); }
+.ask-source summary { display: flex; align-items: center; gap: 8px; padding: 9px 12px; cursor: pointer; list-style: none; }
+.ask-source summary::-webkit-details-marker { display: none; }
+.ask-source summary::after { content: 'Ver los datos'; margin-left: auto; font-size: 0.82rem; font-weight: 600; color: var(--primary); white-space: nowrap; }
+.ask-source[open] summary::after { content: 'Ocultar'; }
+.ask-source .table-wrap { box-shadow: none; margin: 0 8px 8px; padding: 0; max-height: 320px; overflow: auto; }
+.ask-source > p { margin: 0 12px 10px; }
+.ask-rate { display: flex; align-items: center; gap: 4px; }
+.ask-rate .icon-btn { width: 36px; height: 36px; }
+.ask-msg.is-typing { flex-direction: row; display: flex; align-items: center; gap: 6px; }
+.ask-msg.is-typing > span { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); animation: typing 1.2s infinite ease-in-out; }
+.ask-msg.is-typing > span:nth-child(2) { animation-delay: 0.15s; }
+.ask-msg.is-typing > span:nth-child(3) { animation-delay: 0.3s; }
+.ask-msg.is-typing em { margin-left: 6px; font-style: normal; }
+.ask-form { display: flex; gap: 10px; align-items: flex-end; padding: 14px 16px; border-top: 1px solid var(--border); background: var(--surface); }
+.ask-form textarea { flex: 1; resize: none; min-height: 48px; max-height: 160px; border-radius: 16px; field-sizing: content; }
+.ask-form .btn { width: 48px; height: 48px; padding: 0; border-radius: 50%; flex: none; }
+.ask .alert, .ask-panel .alert { margin: 0 16px 12px; }
+
+@keyframes typing { 0%, 80%, 100% { opacity: 0.3; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+
+@media (max-width: 1100px) {
+  .report-picker { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .report-picker { grid-template-columns: 1fr; }
+  .report-actions { margin-left: 0; width: 100%; }
+  .report-actions .btn { flex: 1; }
+  .anomaly-figure { justify-items: start; }
+  .status-tabs-note { margin-left: 0; width: 100%; }
+  .ask-list { padding: 14px; }
+  .ask-msg { max-width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-inline, .anomaly-card, .anomaly-explain, .ask-msg { animation: fade 120ms linear both; }
+  .ask-msg.is-typing > span { animation: none; opacity: 0.6; }
+}
+.ask-msg.is-bot > .ai-label, .ask-msg.is-bot > .rules-label { justify-self: start; }

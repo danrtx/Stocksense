@@ -22,6 +22,7 @@ import numpy as np
 
 # Cuántas semanas hacia adelante se evalúan (lo que importa para decidir una compra).
 EVAL_HORIZONS = 4
+RECENT_WEEKS = 4  # T-28.3: precisión de las últimas 4 semanas en el panel
 # Horizonte máximo que se guarda (la pantalla deja ver 4, 8 o 12).
 MAX_HORIZON = 12
 # Cuantil normal para un rango del 80 %.
@@ -187,6 +188,9 @@ class Fit:
     baseline_abs_error: float
     beats_baseline: bool | None
     residual_sd: float
+    # T-28.3: error a 1 semana en las últimas 4 semanas (lo que se habría pronosticado cada semana).
+    recent_abs_error: float = 0.0
+    recent_actual: float = 0.0
     forecast: list[tuple[float, float, float]] = field(default_factory=list)  # (yhat, lo, hi) por semana
 
 
@@ -264,6 +268,7 @@ def fit_series(y: np.ndarray, horizon: int = MAX_HORIZON) -> Fit:
     base_abs = float(base_e["abs"][0])
     test_wape = wape(test_abs, test_actual)
     base_wape = wape(base_abs, test_actual)
+    recent_e = errors(chosen, y, max(1, n - RECENT_WEEKS), n, horizons=1)
 
     # Rango probable: dispersión real de los errores a 1…4 semanas en validación + prueba.
     sds = []
@@ -295,5 +300,7 @@ def fit_series(y: np.ndarray, horizon: int = MAX_HORIZON) -> Fit:
         baseline_abs_error=base_abs,
         beats_baseline=None if test_wape is None else test_abs <= base_abs,
         residual_sd=float(sds[0]),
+        recent_abs_error=float(recent_e["abs"][0]),
+        recent_actual=float(recent_e["actual"]),
         forecast=forecast,
     )

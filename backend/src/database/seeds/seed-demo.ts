@@ -1,11 +1,35 @@
+import bcrypt from 'bcryptjs';
 import { AppDataSource } from '../data-source';
 
 /**
- * Datos de demostración para los sprints 2 a 5: bodegas, proveedores, stock,
- * 18 meses de ventas, puntos de reorden, alertas y órdenes de compra.
+ * Datos de demostración: bodegas, proveedores, stock, 18 meses de ventas, puntos de
+ * reorden, alertas, órdenes de compra y una persona por rol para probar permisos.
  * Uso: npm run seed:demo   (después de npm run seed)
- * Solo para desarrollo: no lo corras en producción. Se puede correr una sola vez.
+ * Solo para desarrollo: no lo corras en producción. Los datos se cargan una sola vez;
+ * las cuentas de prueba se crean (o se les restablece la clave) cada vez que se corre.
  */
+
+/** Cuentas de prueba, una por rol. Todas con la clave DEMO_PASSWORD. */
+export const DEMO_PASSWORD = 'ClaveSegura2026';
+export const DEMO_USERS = [
+  { email: 'marta@demo.co', fullName: 'Marta Compras', role: 'COMPRAS' },
+  { email: 'bruno@demo.co', fullName: 'Bruno Bodega', role: 'BODEGA' },
+  { email: 'lina@demo.co', fullName: 'Lina Analista', role: 'ANALISTA' },
+];
+
+async function seedDemoUsers() {
+  const hash = await bcrypt.hash(DEMO_PASSWORD, Number(process.env.BCRYPT_COST ?? 12));
+  for (const u of DEMO_USERS) {
+    await AppDataSource.query(
+      `INSERT INTO users (email, full_name, role, status, password_hash)
+       VALUES ($1, $2, $3, 'ACTIVE', $4)
+       ON CONFLICT (email) DO UPDATE SET status = 'ACTIVE', password_hash = EXCLUDED.password_hash,
+         failed_login_attempts = 0, locked_until = NULL, invite_token_hash = NULL, updated_at = now()`,
+      [u.email, u.fullName, u.role, hash],
+    );
+  }
+  console.log(`Cuentas de prueba listas (clave ${DEMO_PASSWORD}): ${DEMO_USERS.map((u) => `${u.email} (${u.role})`).join(', ')}.`);
+}
 
 // Generador pseudoaleatorio con semilla: los datos salen iguales en cada equipo.
 function rng(seed: number) {
@@ -73,10 +97,19 @@ async function seedDemo() {
   await AppDataSource.initialize();
   await AppDataSource.runMigrations();
   const db = AppDataSource;
+  await seedDemoUsers();
 
   const [{ n: already }] = await db.query(`SELECT count(*)::int AS n FROM suppliers WHERE email LIKE '%.example'`);
   if (already > 0) {
-    console.log('Los datos de demostración ya están cargados. No se hizo nada.');
+    const added = await refreshDemoSales();
+    const planted = await plantDemoAnomalies();
+    console.log(
+      added
+        ? `Los datos de demostración ya estaban cargados. Se agregaron ${added} días de venta hasta ayer.`
+        : 'Los datos de demostración ya están cargados y al día.',
+    );
+    if (planted) console.log(planted);
+    if (added || planted) console.log('Reentrena el modelo (Pronóstico › Modelos) para que el pronóstico use las ventas nuevas.');
     await db.destroy();
     return;
   }
@@ -274,8 +307,144 @@ async function seedDemo() {
     console.log(`Demo lista: ${products.length} productos, ${SUPPLIERS.length} proveedores, ${salesRows.length} días de venta, 3 órdenes.`);
   });
 
-  console.log('Abre StockSense › Ventas › Datos del modelo y pulsa "Ejecutar ahora" para preparar las series semanales.');
+  const planted = await plantDemoAnomalies();
+  if (planted) console.log(planted);
+  console.log('Abre StockSense › Pronóstico › Modelos y pulsa "Reentrenar ahora" para calcular el pronóstico.');
   await db.destroy();
+}
+
+const DEMO_IMPORT = 'demo-historial-ventas.csv';
+const ANOMALY_IMPORT = 'demo-casos-anomalos.csv';
+const WHOLE = ['UND', 'CAJA', 'PAQ'];
+
+/** Fecha AAAA-MM-DD en Bogotá, `offset` días desde hoy. */
+function bogotaDay(offset = 0): string {
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Bogota' }).format(new Date(Date.now() + offset * 86_400_000));
+}
+
+const addDays = (day: string, n: number) => new Date(Date.parse(`${day}T12:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
+/** Lunes de la semana de `day`. */
+const monday = (day: string) => addDays(day, -((new Date(`${day}T12:00:00Z`).getUTCDay() + 6) % 7));
+
+/**
+ * La demo se carga una vez, pero el tiempo pasa: si se cargó hace semanas, al pronóstico le
+ * faltarían las ventas recientes. Esto completa las ventas de cada producto hasta ayer, con el
+ * mismo ritmo que tenía en sus últimas 8 semanas.
+ */
+async function refreshDemoSales(): Promise<number> {
+  const db = AppDataSource;
+  const [imp] = await db.query(`SELECT id FROM sales_imports WHERE file_name = $1 ORDER BY created_at LIMIT 1`, [DEMO_IMPORT]);
+  if (!imp) return 0;
+  const yesterday = bogotaDay(-1);
+  const products: { id: string; unit: string; last: string; avg: number }[] = await db.query(
+    `WITH last AS (SELECT product_id, max(sold_on) AS last FROM sales WHERE import_id = $1 GROUP BY product_id)
+     SELECT l.product_id AS id, p.unit, l.last::text AS last,
+            (SELECT COALESCE(sum(s.quantity), 0) / 56.0 FROM sales s
+              WHERE s.product_id = l.product_id AND s.import_id = $1 AND s.sold_on > l.last - 56)::float AS avg
+       FROM last l JOIN products p ON p.id = l.product_id
+      WHERE p.is_active AND l.last < $2::date`,
+    [imp.id, yesterday],
+  );
+  if (!products.length) return 0;
+  const warehouses: { id: string; code: string }[] = await db.query(`SELECT id, code FROM warehouses WHERE is_active`);
+  const main = warehouses.find((w) => w.code === 'PRINCIPAL') ?? warehouses[0];
+  const north = warehouses.find((w) => w.code === 'NORTE') ?? main;
+  const south = warehouses.find((w) => w.code === 'SUR') ?? main;
+  const rows: { product: string; warehouse: string; day: string; qty: number }[] = [];
+  const days = new Set<string>();
+  for (const p of products) {
+    for (let day = addDays(p.last, 1); day <= yesterday; day = addDays(day, 1)) {
+      const dow = new Date(`${day}T12:00:00Z`).getUTCDay();
+      if (dow === 0 && random() < 0.7) continue;
+      let qty = p.avg * (dow === 6 ? 1.35 : 0.95) * between(0.4, 1.6);
+      qty = WHOLE.includes(p.unit) ? Math.round(qty) : Math.round(qty * 10) / 10;
+      if (qty <= 0) continue;
+      const warehouse = random() < 0.6 ? main.id : random() < 0.5 ? north.id : south.id;
+      rows.push({ product: p.id, warehouse, day, qty });
+      days.add(day);
+    }
+  }
+  await insertSales(imp.id, rows);
+  await db.query(`UPDATE sales_imports SET rows_total = rows_total + $2, rows_imported = rows_imported + $2 WHERE id = $1`, [imp.id, rows.length]);
+  return days.size;
+}
+
+type Runner = { query: (sql: string, params?: unknown[]) => Promise<any> }; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+async function insertSales(
+  importId: string,
+  rows: { product: string; warehouse: string; day: string; qty: number }[],
+  runner: Runner = AppDataSource,
+) {
+  for (let i = 0; i < rows.length; i += 5000) {
+    const chunk = rows.slice(i, i + 5000);
+    await runner.query(
+      `INSERT INTO sales (product_id, warehouse_id, sold_on, quantity, source, import_id)
+       SELECT p, w, d, q, 'IMPORT', $5 FROM unnest($1::uuid[], $2::uuid[], $3::date[], $4::numeric[]) AS t(p, w, d, q)
+       ON CONFLICT (product_id, warehouse_id, sold_on) WHERE source = 'IMPORT'
+       DO UPDATE SET quantity = sales.quantity + EXCLUDED.quantity`,
+      [chunk.map((r) => r.product), chunk.map((r) => r.warehouse), chunk.map((r) => r.day), chunk.map((r) => r.qty), importId],
+    );
+  }
+}
+
+/**
+ * HU-26: tres casos fuera de lo normal en la última semana completa, para que la bandeja de
+ * anomalías tenga algo que mostrar en la demo. Se siembran una sola vez.
+ *  1. Pintura vinilo 1 galón: ventas 4 veces lo normal (parece una promoción).
+ *  2. Chazo plástico 3/8": un día con 30 veces lo normal (parece un error de digitación).
+ *  3. Cemento gris 50 kg: una merma grande por producto dañado.
+ */
+async function plantDemoAnomalies(): Promise<string | null> {
+  const db = AppDataSource;
+  const [done] = await db.query(`SELECT 1 FROM sales_imports WHERE file_name = $1`, [ANOMALY_IMPORT]);
+  if (done) return null;
+  const week = addDays(monday(bogotaDay()), -7);
+  const products: { id: string; sku: string; unit: string; avg: number }[] = await db.query(
+    `SELECT p.id, p.sku, p.unit,
+            (SELECT COALESCE(sum(s.quantity), 0) / 8.0 FROM sales s
+              WHERE s.product_id = p.id AND s.sold_on >= $2::date - 56 AND s.sold_on < $2::date)::float AS avg
+       FROM products p WHERE p.sku = ANY($1) AND p.is_active`,
+    [['PIN-BLA1', 'CHA-3/8', 'CEM-50'], week],
+  );
+  const bySku = Object.fromEntries(products.map((p) => [p.sku, p]));
+  const [main] = await db.query(`SELECT id FROM warehouses WHERE is_active ORDER BY is_default DESC, code LIMIT 1`);
+  const [admin] = await db.query(`SELECT id FROM users WHERE role = 'ADMIN' ORDER BY created_at LIMIT 1`);
+  if (!main || !bySku['PIN-BLA1'] || !bySku['CHA-3/8'] || !bySku['CEM-50']) return null;
+
+  await db.transaction(async (m) => {
+    const [imp] = await m.query(
+      `INSERT INTO sales_imports (file_name, rows_total, rows_imported, rows_failed, quality, duration_ms, created_by)
+       VALUES ($1, 3, 3, 0, '{}'::jsonb, 0, $2) RETURNING id`,
+      [ANOMALY_IMPORT, admin?.id ?? null],
+    );
+    const paint = bySku['PIN-BLA1'];
+    const anchor = bySku['CHA-3/8'];
+    const roundQ = (unit: string, v: number) => (WHOLE.includes(unit) ? Math.max(1, Math.round(v)) : Math.round(v * 10) / 10);
+    await insertSales(imp.id, [
+      { product: paint.id, warehouse: main.id, day: addDays(week, 4), qty: roundQ(paint.unit, Math.max(8, paint.avg * 1.5)) },
+      { product: paint.id, warehouse: main.id, day: addDays(week, 5), qty: roundQ(paint.unit, Math.max(8, paint.avg * 1.5)) },
+      { product: anchor.id, warehouse: main.id, day: addDays(week, 2), qty: roundQ(anchor.unit, Math.max(40, (anchor.avg / 6) * 30)) },
+    ], m);
+
+    // Merma: salida por producto dañado, con su movimiento y el stock actualizado.
+    const cement = bySku['CEM-50'];
+    const [level] = await m.query(`SELECT quantity::float AS q FROM stock_levels WHERE product_id = $1 AND warehouse_id = $2`, [cement.id, main.id]);
+    const shrink = Math.min(Math.max(1, Math.round(level?.q ?? 0) - 1), Math.max(12, Math.round(cement.avg)));
+    if (level && shrink > 0) {
+      // UPDATE … RETURNING en TypeORM devuelve [filas, cantidad].
+      const [[row]] = await m.query(
+        `UPDATE stock_levels SET quantity = quantity - $3 WHERE product_id = $1 AND warehouse_id = $2 RETURNING quantity::float AS q`,
+        [cement.id, main.id, shrink],
+      );
+      await m.query(
+        `INSERT INTO stock_movements (product_id, warehouse_id, type, quantity, balance_after, reason, user_id, created_at)
+         VALUES ($1, $2, 'OUT', $3, $4, 'Producto dañado: bultos mojados por una gotera', $5, ($6::date + 3 + time '15:20') AT TIME ZONE 'America/Bogota')`,
+        [cement.id, main.id, -shrink, row.q, admin?.id ?? null, week],
+      );
+    }
+  });
+  return `Se sembraron 3 casos raros en la semana del ${week} para la bandeja de anomalías.`;
 }
 
 seedDemo().catch(async (error) => {

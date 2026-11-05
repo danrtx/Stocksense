@@ -690,7 +690,7 @@ export interface AiUsage {
   timeoutSeconds: number
   monthlyLimitPerUser: number
   totals: { calls: number; ok: number; failed: number; rejected: number; promptTokens: number; outputTokens: number; costUsd: number; avgLatencyMs: number }
-  byUser: { id: string; fullName: string; email: string; role: Role; calls: number; tokens: number; costUsd: number; explain: number; assistant: number }[]
+  byUser: { id: string; fullName: string; email: string; role: Role; calls: number; tokens: number; costUsd: number; explain: number; assistant: number; anomaly?: number; dataChat?: number }[]
   recent: { createdAt: string; feature: string; status: string; model: string; promptTokens: number; outputTokens: number; costUsd: number; latencyMs: number | null; detail: string | null; user: string | null }[]
 }
 
@@ -745,4 +745,102 @@ export interface ChatMessage {
   routeLabel?: string
   suggestions?: { id: string; title: string; route: string | null }[]
   notice?: string
+}
+
+// ---------------------------------------------------------------- Sprint 9
+
+export type ReportKind = 'stock' | 'movements' | 'rotation' | 'accuracy'
+export type ReportColumnType = 'text' | 'code' | 'qty' | 'money' | 'pct' | 'number' | 'datetime' | 'bool'
+export type ReportCell = string | number | boolean | null
+
+export interface ReportResult {
+  kind: ReportKind
+  title: string
+  subtitle: string
+  columns: { key: string; label: string; type: ReportColumnType; width: number }[]
+  rows: Record<string, ReportCell>[]
+  total: number
+  totals: Record<string, ReportCell> | null
+  filtersApplied: { label: string; value: string }[]
+  notes: string[]
+}
+
+export type AnomalyKind = 'SALES_SPIKE' | 'SALES_DROP' | 'SHRINK'
+export type AnomalyStatus = 'OPEN' | 'EXPLAINED' | 'IGNORED'
+
+export interface AnomalyExplanation {
+  resumen: string
+  hipotesis: { causa: string; comoVerificar: string }[]
+}
+
+export interface Anomaly {
+  id: string
+  kind: AnomalyKind
+  kindLabel: string
+  week: string
+  observed: number
+  expected: number
+  lower: number
+  upper: number
+  z: number
+  timesExpected: number | null
+  history: { week: string; quantity: number }[]
+  status: AnomalyStatus
+  statusNote: string | null
+  statusAt: string | null
+  statusBy: string | null
+  explanation: AnomalyExplanation | null
+  explanationSource: 'GEMINI' | 'RULES' | null
+  explainedAt: string | null
+  detectedAt: string
+  product: { id: string; sku: string; name: string; unit: Unit; category: string | null }
+}
+
+export interface AnomalyList {
+  items: Anomaly[]
+  counts: Record<AnomalyStatus, number>
+  lastScanAt: string | null
+  total: number
+  page: number
+  limit: number
+  pages: number
+}
+
+export interface RecentAccuracy {
+  source: 'TRACKED' | 'BACKTEST' | 'NONE'
+  accuracy: number | null
+  wape: number | null
+  weeks: { week: string; accuracy: number | null; products: number }[]
+  runVersion: number | null
+}
+
+export type ChatColumnType = 'text' | 'code' | 'qty' | 'money' | 'pct' | 'date' | 'datetime'
+
+export interface ChatSource {
+  id: string
+  tool: string
+  title: string
+  columns: { key: string; label: string; type: ChatColumnType }[]
+  rows: Record<string, unknown>[]
+  total: number
+  extra?: Record<string, unknown>
+  consultedAt: string
+}
+
+export interface ChatSuggestion {
+  text: string
+  tool: string
+}
+
+export type DataChatStatus = 'OK' | 'OUT_OF_SCOPE' | 'UNVERIFIED' | 'FAILED' | 'UNAVAILABLE' | 'LIMIT' | 'DIRECT'
+
+export interface DataChatAnswer {
+  id: string
+  status: DataChatStatus
+  answer: string | null
+  message?: string
+  sources: ChatSource[]
+  suggestions: ChatSuggestion[]
+  model?: string
+  latencyMs?: number
 }

@@ -132,6 +132,12 @@ export class EnvironmentVariables {
   @Max(60_000)
   GEMINI_TIMEOUT_MS: number = 10_000;
 
+  /** HU-25: tiempo máximo de una pregunta al inventario (puede hacer varias llamadas). */
+  @IsInt()
+  @Min(5000)
+  @Max(120_000)
+  GEMINI_CHAT_TIMEOUT_MS: number = 25_000;
+
   /** Precios en dólares por millón de tokens para estimar el costo (T-23.3). */
   @IsNumber()
   @Min(0)

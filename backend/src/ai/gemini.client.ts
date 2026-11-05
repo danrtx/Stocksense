@@ -39,8 +39,47 @@ export interface GeminiResult {
   attempts: number;
 }
 
+/** Parte de un mensaje de Gemini: texto, llamada a función o respuesta de función. */
+export interface GeminiPart {
+  text?: string;
+  thought?: boolean;
+  thoughtSignature?: string;
+  functionCall?: { name: string; args?: Record<string, unknown>; id?: string };
+  functionResponse?: { name: string; response: Record<string, unknown>; id?: string };
+}
+
+export interface GeminiContent {
+  role: 'user' | 'model';
+  parts: GeminiPart[];
+}
+
+export interface GeminiFunctionDeclaration {
+  name: string;
+  description: string;
+  parameters?: Record<string, unknown>;
+}
+
+export interface GeminiChatRequest {
+  system: string;
+  contents: GeminiContent[];
+  tools: GeminiFunctionDeclaration[];
+  temperature?: number;
+  maxOutputTokens?: number;
+  /** Momento límite (Date.now()) para esta llamada, incluidos los reintentos. */
+  deadline: number;
+}
+
+export interface GeminiChatResult {
+  /** Partes del mensaje del modelo tal cual (incluidas las firmas de razonamiento, que hay que devolver). */
+  parts: GeminiPart[];
+  model: string;
+  promptTokens: number;
+  outputTokens: number;
+  latencyMs: number;
+}
+
 interface GeminiResponse {
-  candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] }; finishReason?: string }[];
+  candidates?: { content?: { parts?: GeminiPart[] }; finishReason?: string }[];
   usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number };
   promptFeedback?: { blockReason?: string };
   error?: { message?: string };
@@ -67,14 +106,52 @@ export class GeminiClient {
   }
 
   async generate(request: GeminiRequest): Promise<GeminiResult> {
+    const started = Date.now();
+    const { data, usage, attempts } = await this.post(this.body(request), started + this.timeoutMs);
+    const text = (data.candidates?.[0]?.content?.parts ?? [])
+      .filter((p) => !p.thought && typeof p.text === 'string')
+      .map((p) => p.text)
+      .join('')
+      .trim();
+    if (!text) throw new GeminiError('ERROR', 'Gemini devolvió una respuesta vacía.', usage);
+    return { text, model: this.model, ...usage, latencyMs: Date.now() - started, attempts };
+  }
+
+  /**
+   * HU-25: un turno de una conversación con herramientas (function calling). Devuelve las
+   * partes del modelo: texto o llamadas a funciones, que la API ejecuta y le devuelve.
+   */
+  async chat(request: GeminiChatRequest): Promise<GeminiChatResult> {
+    const started = Date.now();
+    const generationConfig: Record<string, unknown> = {
+      temperature: request.temperature ?? 0.2,
+      maxOutputTokens: request.maxOutputTokens ?? 2048,
+      ...this.thinking(),
+    };
+    const body = {
+      systemInstruction: { parts: [{ text: request.system }] },
+      contents: request.contents,
+      tools: [{ functionDeclarations: request.tools }],
+      toolConfig: { functionCallingConfig: { mode: 'AUTO' } },
+      generationConfig,
+    };
+    const { data, usage } = await this.post(body, Math.min(request.deadline, started + this.timeoutMs));
+    const parts = data.candidates?.[0]?.content?.parts ?? [];
+    if (!parts.some((p) => p.functionCall || (typeof p.text === 'string' && p.text.trim() && !p.thought))) {
+      throw new GeminiError('ERROR', 'Gemini devolvió una respuesta vacía.', usage);
+    }
+    return { parts, model: this.model, ...usage, latencyMs: Date.now() - started };
+  }
+
+  /** POST con tiempo máximo y reintentos ante 429, 5xx y errores de red. */
+  private async post(payload: unknown, deadline: number) {
     const key = this.config.get<string>('GEMINI_API_KEY');
     if (!key) throw new GeminiError('NOT_CONFIGURED', 'Gemini no está configurado en el servidor.');
     const base = (this.config.get<string>('GEMINI_BASE_URL') || 'https://generativelanguage.googleapis.com').replace(/\/$/, '');
     const url = `${base}/v1beta/models/${encodeURIComponent(this.model)}:generateContent`;
-    const body = JSON.stringify(this.body(request));
+    const body = JSON.stringify(payload);
+    const seconds = Math.max(1, Math.round((deadline - Date.now()) / 1000));
 
-    const started = Date.now();
-    const deadline = started + this.timeoutMs;
     let attempt = 0;
     let lastError: GeminiError = new GeminiError('ERROR', 'Gemini no respondió.');
     while (Date.now() < deadline) {
@@ -91,7 +168,7 @@ export class GeminiClient {
       } catch (error) {
         const name = (error as Error).name;
         if (name === 'TimeoutError' || name === 'AbortError' || Date.now() >= deadline) {
-          throw new GeminiError('TIMEOUT', `Gemini tardó más de ${Math.round(this.timeoutMs / 1000)} segundos.`);
+          throw new GeminiError('TIMEOUT', `Gemini tardó más de ${seconds} segundos.`);
         }
         lastError = new GeminiError('ERROR', 'No pudimos conectarnos con Gemini.');
         if (!(await this.backoff(attempt, deadline))) break;
@@ -116,17 +193,9 @@ export class GeminiClient {
       if (data.promptFeedback?.blockReason || candidate?.finishReason === 'SAFETY') {
         throw new GeminiError('BLOCKED', 'Gemini no quiso responder esta solicitud.', usage);
       }
-      const text = (candidate?.content?.parts ?? [])
-        .filter((p) => !p.thought && typeof p.text === 'string')
-        .map((p) => p.text)
-        .join('')
-        .trim();
-      if (!text) throw new GeminiError('ERROR', 'Gemini devolvió una respuesta vacía.', usage);
-      return { text, model: this.model, ...usage, latencyMs: Date.now() - started, attempts: attempt };
+      return { data, usage, attempts: attempt };
     }
-    if (Date.now() >= deadline) {
-      throw new GeminiError('TIMEOUT', `Gemini tardó más de ${Math.round(this.timeoutMs / 1000)} segundos.`);
-    }
+    if (Date.now() >= deadline) throw new GeminiError('TIMEOUT', `Gemini tardó más de ${seconds} segundos.`);
     throw lastError;
   }
 
@@ -139,17 +208,21 @@ export class GeminiClient {
       generationConfig.responseMimeType = 'application/json';
       generationConfig.responseSchema = request.schema;
     }
-    // Poco razonamiento: respuestas cortas y dentro de los 10 segundos.
-    if (this.model.startsWith('gemini-2.5')) {
-      generationConfig.thinkingConfig = { thinkingBudget: this.model.includes('pro') ? 128 : 0 };
-    } else if (this.model.startsWith('gemini-3')) {
-      generationConfig.thinkingConfig = { thinkingLevel: this.config.get<string>('GEMINI_THINKING_LEVEL') || 'low' };
-    }
+    Object.assign(generationConfig, this.thinking());
     return {
       systemInstruction: { parts: [{ text: request.system }] },
       contents: [{ role: 'user', parts: [{ text: request.prompt }] }],
       generationConfig,
     };
+  }
+
+  /** Poco razonamiento: respuestas cortas y dentro del tiempo máximo. */
+  private thinking(): Record<string, unknown> {
+    if (this.model.startsWith('gemini-2.5')) return { thinkingConfig: { thinkingBudget: this.model.includes('pro') ? 128 : 0 } };
+    if (this.model.startsWith('gemini-3')) {
+      return { thinkingConfig: { thinkingLevel: this.config.get<string>('GEMINI_THINKING_LEVEL') || 'low' } };
+    }
+    return {};
   }
 
   /** Espera antes de reintentar. Devuelve false si ya no hay tiempo. */

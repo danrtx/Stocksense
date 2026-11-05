@@ -125,7 +125,7 @@ def _forecast(conn: psycopg.Connection, run_id, version: int) -> dict:
     forecast_rows = []
     methods: Counter[str] = Counter()
     beats = 0
-    totals = {"abs": 0.0, "signed": 0.0, "actual": 0.0, "baseline": 0.0}
+    totals = {"abs": 0.0, "signed": 0.0, "actual": 0.0, "baseline": 0.0, "recent_abs": 0.0, "recent_actual": 0.0}
     common = {"new": 0.0, "old": 0.0, "actual": 0.0, "products": 0}
     volumes: list[tuple[float, float, float]] = []  # (volumen 52 semanas, error, vendido)
     test_weeks = None
@@ -139,6 +139,8 @@ def _forecast(conn: psycopg.Connection, run_id, version: int) -> dict:
         totals["abs"] += fit.test_abs_error
         totals["actual"] += fit.test_actual
         totals["baseline"] += fit.baseline_abs_error
+        totals["recent_abs"] += fit.recent_abs_error
+        totals["recent_actual"] += fit.recent_actual
         totals["signed"] += (fit.test_bias or 0.0) * fit.test_actual
         volumes.append((volume, fit.test_abs_error, fit.test_actual))
 
@@ -169,6 +171,8 @@ def _forecast(conn: psycopg.Connection, run_id, version: int) -> dict:
                 fit.beats_baseline,
                 fit.residual_sd,
                 volume,
+                fit.recent_abs_error,
+                fit.recent_actual,
             )
         )
         for step, (yhat, lo, hi) in enumerate(fit.forecast, start=1):
@@ -189,7 +193,7 @@ def _forecast(conn: psycopg.Connection, run_id, version: int) -> dict:
         with conn.cursor().copy(
             """COPY forecast_product_models (run_id, product_id, method, params, weeks_of_history, validation_wape,
                    test_wape, test_bias, test_actual, test_abs_error, baseline_wape, beats_baseline, residual_sd,
-                   volume_52w) FROM STDIN"""
+                   volume_52w, recent_abs_error, recent_actual) FROM STDIN"""
         ) as copy:
             for row in models_rows:
                 copy.write_row(row)
@@ -203,7 +207,7 @@ def _forecast(conn: psycopg.Connection, run_id, version: int) -> dict:
                   SET status = 'SUCCESS', finished_at = now(), decision = %s, reason = %s, is_active = %s,
                       data_last_week = %s, test_weeks = %s, products_total = %s, products_forecast = %s,
                       products_insufficient = %s, overall_wape = %s, overall_bias = %s, baseline_wape = %s,
-                      top20_wape = %s, previous_wape = %s, methods = %s
+                      top20_wape = %s, previous_wape = %s, methods = %s, recent_wape = %s
                 WHERE id = %s""",
             (
                 decision,
@@ -220,6 +224,7 @@ def _forecast(conn: psycopg.Connection, run_id, version: int) -> dict:
                 top20,
                 previous_wape,
                 json.dumps({"counts": dict(methods), "beatsBaseline": beats, "labels": METHOD_LABELS}),
+                _ratio(totals["recent_abs"], totals["recent_actual"]),
                 run_id,
             ),
         )

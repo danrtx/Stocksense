@@ -14,8 +14,9 @@ import pandas as pd
 import psycopg
 from psycopg.rows import dict_row
 
+from .anomalies import scan as scan_anomalies
 from .config import Settings
-from .series import READY, build_weekly_series
+from .series import READY, build_weekly_series, data_end_week, last_complete_week
 
 log = logging.getLogger("stocksense.forecast")
 
@@ -62,6 +63,11 @@ def run_pipeline(settings: Settings, trigger: str, requested_by: str | None = No
             ).fetchone()["id"]
             try:
                 stats = _prepare(conn, settings)
+                # HU-26: con las semanas recién armadas se buscan ventas y mermas fuera de lo normal.
+                try:
+                    stats["anomalies"] = scan_anomalies(conn)
+                except Exception as error:  # noqa: BLE001 - las anomalías no tumban el flujo de datos
+                    log.error("La búsqueda de anomalías falló: %s", error)
                 conn.execute(
                     """UPDATE pipeline_runs
                           SET status = 'SUCCESS', finished_at = now(), products_total = %s,
@@ -95,7 +101,11 @@ def _prepare(conn: psycopg.Connection, settings: Settings) -> dict:
              FROM sales GROUP BY product_id, sold_on"""
     ).fetchall()
     daily = pd.DataFrame(rows, columns=["product_id", "sold_on", "quantity"])
-    weekly, series = build_weekly_series(daily, products, today, settings.min_weeks)
+    last_sale = max((r["sold_on"] for r in rows), default=None)
+    end = data_end_week(last_sale, today)
+    if end < last_complete_week(today):
+        log.warning("No hay ventas cargadas desde %s: los datos se cortan en la semana del %s.", last_sale, end)
+    weekly, series = build_weekly_series(daily, products, today, settings.min_weeks, end_week=end)
 
     with conn.transaction():
         conn.execute("DELETE FROM weekly_sales")

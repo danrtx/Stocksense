@@ -19,7 +19,7 @@ El sistema tiene 4 roles. Cada usuario tiene exactamente uno. La fuente de verda
 | `sales:import` | Cargar el historial de ventas | Sí | | | Sí |
 | `integrations:manage` | Crear y revocar claves de API del punto de venta | Sí | | | |
 | `alerts:read` | Ver alertas de stock bajo y recibirlas por correo | Sí | Sí | Sí | |
-| `reports:read` | Ver reportes (sprint 9) | Sí | | | Sí |
+| `reports:read` | Ver y exportar reportes (Excel y PDF) y revisar anomalías | Sí | | | Sí |
 | `forecast:read` | Ver pronósticos, precisión, versiones del modelo, sugerencias de compra y pedir la explicación con IA | Sí | Sí | | Sí |
 | `forecast:run` | Preparar los datos, reentrenar el pronóstico y activar una versión | Sí | | | Sí |
 | `ai:manage` | Configuración de IA: umbrales, horario, límite de Gemini, consumo, reportes y modelo del asistente | Sí | | | |
@@ -31,6 +31,9 @@ El sistema tiene 4 roles. Cada usuario tiene exactamente uno. La fuente de verda
 - **Costos:** quien no tiene `products:cost:read` recibe los productos sin el campo `cost`, el stock sin `value`, las órdenes de compra sin costos ni total, y los KPIs en unidades.
 - **Bodega y compras:** Bodega ve las órdenes de compra (sin costos) solo para recibir mercancía; no ve proveedores.
 - **Asistente de ayuda:** lo usan todas las personas con sesión. Solo muestra las funciones que el rol puede usar; si alguien pregunta por otra, le dice a quién pedírsela y no le muestra la ruta.
+- **Preguntar al inventario (sprint 9):** lo usan todos los roles con `stock:read`. A Gemini solo se le ofrecen las consultas que el rol puede hacer: costos con `products:cost:read`, pronóstico con `forecast:read`, órdenes con `purchases:read` y anomalías con `reports:read`. Si pide otra, se rechaza. Todas corren en transacciones de solo lectura.
+- **Anomalías:** verlas, explicarlas y marcarlas exige `reports:read`; el botón «Buscar ahora» exige además `forecast:run`.
+- **Reportes sin costos:** si un rol con `reports:read` no tuviera `products:cost:read`, los reportes salen sin las columnas de valor.
 - **Sugerencias de compra:** verlas exige `purchases:read` y `forecast:read`; crear el borrador, además `purchases:write`.
 - **Punto de venta:** la API de ventas (`/api/integrations/*`) no usa sesión de usuario sino la clave del encabezado `X-Api-Key`.
 

@@ -24,7 +24,8 @@ const NAV: NavItem[] = [
   { to: '/compras', label: 'Compras', anyOf: ['purchases:read', 'purchases:receive'] },
   { to: '/ventas', label: 'Ventas', anyOf: ['sales:import', 'integrations:manage'] },
   { to: '/pronostico', label: 'Pronóstico', anyOf: ['forecast:read'] },
-  { to: '/reportes', label: 'Reportes', anyOf: ['reports:read'], soon: true },
+  { to: '/reportes', label: 'Reportes', anyOf: ['reports:read'] },
+  { to: '/preguntar', label: 'Preguntar', anyOf: ['stock:read'] },
 ]
 
 /** Administración: va en el menú de la cuenta para que la barra no se desborde. */
@@ -49,6 +50,7 @@ const RAIL: RailItem[] = [
   { to: '/inventario', label: 'Stock actual', icon: 'box', permission: 'stock:read' },
   { to: '/compras/ordenes/nueva', label: 'Nueva orden de compra', icon: 'cart', permission: 'purchases:write' },
   { to: '/pronostico', label: 'Pronóstico de demanda', icon: 'trend', permission: 'forecast:read' },
+  { to: '/preguntar', label: 'Pregúntale a tu inventario', icon: 'sparkle', permission: 'stock:read' },
   { to: '/alertas', label: 'Alertas de stock', icon: 'bell', permission: 'alerts:read' },
   { to: '/usuarios?invitar=1', label: 'Invitar usuario', icon: 'userPlus', permission: 'users:manage' },
   { to: '/auditoria', label: 'Auditoría', icon: 'clipboard', permission: 'audit:read' },

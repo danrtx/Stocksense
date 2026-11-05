@@ -89,7 +89,7 @@ export function AiSettingsPage() {
           {usage.byUser.length > 0 && (
             <div className="table-wrap">
               <table className="table">
-                <thead><tr><th>Persona</th><th className="num">Consultas</th><th className="num">Cupo</th><th className="num">Explicar</th><th className="num">Asistente</th><th className="num">Tokens</th><th className="num">Costo</th></tr></thead>
+                <thead><tr><th>Persona</th><th className="num">Consultas</th><th className="num">Cupo</th><th className="num">Explicar</th><th className="num">Asistente</th><th className="num">Preguntas</th><th className="num">Anomalías</th><th className="num">Tokens</th><th className="num">Costo</th></tr></thead>
                 <tbody>
                   {usage.byUser.map((u) => (
                     <tr key={u.id}>
@@ -98,6 +98,8 @@ export function AiSettingsPage() {
                       <td data-label="Cupo" className="num">{u.calls >= usage.monthlyLimitPerUser ? <Badge tone="warn">Agotado</Badge> : `${usage.monthlyLimitPerUser - u.calls} libres`}</td>
                       <td data-label="Explicar" className="num">{u.explain}</td>
                       <td data-label="Asistente" className="num">{u.assistant}</td>
+                      <td data-label="Preguntas" className="num">{u.dataChat ?? 0}</td>
+                      <td data-label="Anomalías" className="num">{u.anomaly ?? 0}</td>
                       <td data-label="Tokens" className="num">{formatNumber(u.tokens)}</td>
                       <td data-label="Costo" className="num">{usd(u.costUsd)}</td>
                     </tr>

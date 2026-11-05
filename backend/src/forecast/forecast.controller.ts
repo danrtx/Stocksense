@@ -94,6 +94,13 @@ export class ForecastController {
     return this.explainer.explain(productId, q.horizon, user, q.refresh);
   }
 
+  // T-28.3: precisión de las últimas 4 semanas (panel)
+  @Get('recent-accuracy')
+  @RequirePermissions(Permission.ForecastRead)
+  recentAccuracy() {
+    return this.forecast.recentAccuracy();
+  }
+
   // HU-21
   @Get('accuracy')
   @RequirePermissions(Permission.ForecastRead)

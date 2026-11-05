@@ -149,5 +149,11 @@
   {"q": "y una entrada?", "article": "registrar-entrada", "previous": ["como registro una salida"]},
   {"q": "y una salida?", "article": "registrar-salida", "previous": ["como registro una entrada de mercancia"]},
   {"q": "y si es a otra bodega?", "article": "transferir", "previous": ["como registro una salida"]},
-  {"q": "y donde veo las que faltan?", "article": "ver-ordenes", "previous": ["como hago una orden de compra"]}
+  {"q": "y donde veo las que faltan?", "article": "ver-ordenes", "previous": ["como hago una orden de compra"]},
+  {"q": "bajar en pdf la rotación de productos", "article": "reportes"},
+  {"q": "informe de movimientos en excel para contabilidad", "article": "reportes"},
+  {"q": "un producto se vendió demasiado y no sé por qué", "article": "anomalias"},
+  {"q": "dónde salen las ventas extrañas de la semana", "article": "anomalias"},
+  {"q": "quiero hacerle preguntas a mis datos con inteligencia artificial", "article": "preguntar-datos"},
+  {"q": "dónde le escribo una pregunta sobre mi inventario", "article": "preguntar-datos"}
 ]

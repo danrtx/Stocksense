@@ -1,10 +1,10 @@
-import type { ReactNode } from 'react'
+import { lazy, Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import type { Permission } from './api/types'
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import { RequireAuth, RequirePermission } from './auth/guards'
 import { Layout } from './components/Layout'
-import { AccessDenied, ComingSoon } from './pages/AccessDenied'
+import { AccessDenied } from './pages/AccessDenied'
 import { AcceptInvitationPage } from './pages/AcceptInvitationPage'
 import { AiSettingsPage } from './pages/AiSettingsPage'
 import { AlertsPage } from './pages/AlertsPage'
@@ -17,7 +17,6 @@ import { ModelsPage } from './pages/forecast/ModelsPage'
 import { CountDetailPage } from './pages/inventory/CountDetailPage'
 import { CountsPage } from './pages/inventory/CountsPage'
 import { InventoryLayout } from './pages/inventory/InventoryLayout'
-import { MovementFormPage } from './pages/inventory/MovementFormPage'
 import { MovementsPage } from './pages/inventory/MovementsPage'
 import { StockPage } from './pages/inventory/StockPage'
 import { TransfersPage } from './pages/inventory/TransfersPage'
@@ -39,6 +38,14 @@ import { SalesLayout } from './pages/sales/SalesLayout'
 import { SalesPage } from './pages/sales/SalesPage'
 import { UsersPage } from './pages/UsersPage'
 import { ThemeProvider } from './theme/ThemeContext'
+
+// El formulario de movimientos se descarga al abrirlo (mantiene el paquete inicial bajo 500 kB).
+const MovementFormPage = lazy(() => import('./pages/inventory/MovementFormPage').then((m) => ({ default: m.MovementFormPage })))
+const AskPage = lazy(() => import('./pages/AskPage').then((m) => ({ default: m.AskPage })))
+const ReportsPage = lazy(() => import('./pages/reports/ReportsPage').then((m) => ({ default: m.ReportsPage })))
+const AnomaliesPage = lazy(() => import('./pages/reports/AnomaliesPage').then((m) => ({ default: m.AnomaliesPage })))
+const ReportsLayout = lazy(() => import('./pages/reports/ReportsLayout').then((m) => ({ default: m.ReportsLayout })))
+const loading = <div className="page-loading">Cargando…</div>
 
 const need = (permission: Permission, element: ReactNode) => <RequirePermission permission={permission}>{element}</RequirePermission>
 
@@ -70,7 +77,7 @@ export default function App() {
             <Route path="productos/importar" element={need('products:write', <ProductImportPage />)} />
             <Route path="productos/:id" element={need('products:read', <ProductDetailPage />)} />
 
-            <Route path="inventario/registrar" element={need('stock:write', <MovementFormPage />)} />
+            <Route path="inventario/registrar" element={need('stock:write', <Suspense fallback={loading}><MovementFormPage /></Suspense>)} />
             <Route path="inventario" element={need('stock:read', <InventoryLayout />)}>
               <Route index element={<StockPage />} />
               <Route path="movimientos" element={<MovementsPage />} />
@@ -108,7 +115,11 @@ export default function App() {
             <Route path="usuarios" element={need('users:manage', <UsersPage />)} />
             <Route path="auditoria" element={need('audit:read', <AuditPage />)} />
             <Route path="configuracion/ia" element={need('ai:manage', <AiSettingsPage />)} />
-            <Route path="reportes" element={need('reports:read', <ComingSoon title="Reportes" sprint="sprint 9" />)} />
+            <Route path="reportes" element={need('reports:read', <Suspense fallback={loading}><ReportsLayout /></Suspense>)}>
+              <Route index element={<Suspense fallback={loading}><ReportsPage /></Suspense>} />
+              <Route path="anomalias" element={<Suspense fallback={loading}><AnomaliesPage /></Suspense>} />
+            </Route>
+            <Route path="preguntar" element={need('stock:read', <Suspense fallback={loading}><AskPage /></Suspense>)} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

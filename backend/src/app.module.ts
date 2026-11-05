@@ -5,11 +5,13 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AiModule } from './ai/ai.controller';
 import { AlertsModule } from './alerts/alerts.module';
+import { AnomaliesModule } from './anomalies/anomalies.controller';
 import { AssistantModule } from './assistant/assistant.controller';
 import { AuditModule } from './audit/audit.module';
 import { AuthGuard } from './auth/auth.guard';
 import { AuthModule } from './auth/auth.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { DataChatModule } from './data-chat/data-chat.controller';
 import { PermissionsGuard } from './common/auth/permissions.guard';
 import { RolesController } from './common/auth/roles.controller';
 import { envFilePaths } from './config/env-files';
@@ -20,6 +22,7 @@ import { HealthController } from './health/health.controller';
 import { InventoryModule } from './inventory/inventory.module';
 import { MailModule } from './mail/mail.module';
 import { ProductsModule } from './products/products.module';
+import { ReportsModule } from './reports/reports.controller';
 import { SettingsModule } from './settings/settings.controller';
 import { PurchasesModule } from './purchases/purchases.module';
 import { IntegrationsModule, SalesModule } from './sales/sales.module';
@@ -57,6 +60,9 @@ import { UsersModule } from './users/users.module';
     SettingsModule,
     AiModule,
     AssistantModule,
+    ReportsModule,
+    AnomaliesModule,
+    DataChatModule,
   ],
   controllers: [HealthController, RolesController],
   providers: [

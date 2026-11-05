@@ -406,6 +406,51 @@ export class ForecastService {
     };
   }
 
+  /**
+   * T-28.3: precisión de las últimas 4 semanas para el panel.
+   *  - TRACKED: cada semana se compara con el pronóstico que se tenía ANTES de esa semana
+   *    (la versión aceptada más reciente con datos anteriores). Es lo más honesto, pero
+   *    necesita versiones de semanas pasadas.
+   *  - BACKTEST: mientras no haya esa historia, se usa la prueba hacia atrás de la versión
+   *    activa: lo que habría pronosticado una semana antes en cada una de las últimas 4.
+   */
+  async recentAccuracy() {
+    const weeks: { week: string; absError: number; actual: number; products: number }[] = await this.db.query(
+      `WITH weeks AS (
+         SELECT DISTINCT week_start FROM weekly_sales
+          WHERE week_start > (SELECT max(week_start) FROM weekly_sales) - 28
+       ), pick AS (
+         SELECT w.week_start,
+                (SELECT r.id FROM forecast_runs r
+                  WHERE r.status = 'SUCCESS' AND r.decision = 'ACCEPTED' AND r.data_last_week < w.week_start
+                  ORDER BY r.data_last_week DESC, r.version DESC LIMIT 1) AS run_id
+           FROM weeks w
+       )
+       SELECT pk.week_start::text AS week, sum(abs(f.yhat - ws.quantity))::float AS "absError",
+              sum(ws.quantity)::float AS actual, count(*)::int AS products
+         FROM pick pk
+         JOIN forecasts f ON f.run_id = pk.run_id AND f.week_start = pk.week_start
+         JOIN weekly_sales ws ON ws.product_id = f.product_id AND ws.week_start = f.week_start
+        GROUP BY pk.week_start ORDER BY pk.week_start`,
+    );
+    const run = await this.activeRun();
+    const toAccuracy = (wape: number | null) => (wape === null ? null : Math.round(Math.max(0, 1 - wape) * 10000) / 10000);
+    const tracked = weeks.filter((w) => w.actual > 0);
+    if (tracked.length >= 2) {
+      const wape = tracked.reduce((s, w) => s + w.absError, 0) / tracked.reduce((s, w) => s + w.actual, 0);
+      return {
+        source: 'TRACKED' as const,
+        accuracy: toAccuracy(wape),
+        wape,
+        weeks: tracked.map((w) => ({ week: w.week, accuracy: toAccuracy(w.absError / w.actual), products: w.products })),
+        runVersion: run?.version ?? null,
+      };
+    }
+    if (!run) return { source: 'NONE' as const, accuracy: null, wape: null, weeks: [], runVersion: null };
+    const [{ wape }] = await this.db.query(`SELECT recent_wape::float AS wape FROM forecast_runs WHERE id = $1`, [run.id]);
+    return { source: 'BACKTEST' as const, accuracy: toAccuracy(wape), wape, weeks: [], runVersion: run.version, dataLastWeek: run.dataLastWeek };
+  }
+
   // ------------------------------------------------------- HU-22: versiones y cola
 
   async models() {

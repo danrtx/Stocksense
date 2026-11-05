@@ -5,16 +5,18 @@ import { AuthUser } from '../common/auth/auth-user';
 import { Permission } from '../common/auth/roles';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RequirePermissions } from '../common/decorators/require-permissions.decorator';
-import { AiFeature, AiService } from './ai.service';
+import { AI_FEATURES, AiFeature, AiService } from './ai.service';
 import { GeminiClient } from './gemini.client';
 
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
 
 class FeedbackDto {
-  @IsIn(['EXPLAIN', 'ASSISTANT']) feature: AiFeature;
+  @IsIn(AI_FEATURES) feature: AiFeature;
   @IsOptional() @IsString() @MaxLength(80) targetId?: string;
   @IsString() @MinLength(1) @MaxLength(4000) content: string;
   @IsOptional() @Transform(trim) @IsString() @MaxLength(500) comment?: string;
+  /** HU-25 · T-25.3: pulgar arriba (1) o abajo (-1). */
+  @IsOptional() @IsIn([1, -1]) rating?: 1 | -1;
 }
 
 @Controller('ai')
