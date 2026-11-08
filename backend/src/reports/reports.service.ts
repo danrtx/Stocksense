@@ -194,8 +194,11 @@ export class ReportsService {
       sold: number;
       stock: number;
       cost: number;
+      firstSale: string | null;
     }[] = await this.db.query(
-      `WITH sold AS (
+      `WITH first AS (
+         SELECT product_id, min(sold_on) AS day FROM sales GROUP BY product_id
+       ), sold AS (
          SELECT s.product_id, sum(s.quantity) AS units FROM sales s
           WHERE s.sold_on BETWEEN $1::date AND $2::date AND ($3::uuid IS NULL OR s.warehouse_id = $3)
           GROUP BY s.product_id
@@ -204,8 +207,10 @@ export class ReportsService {
           WHERE ($3::uuid IS NULL OR warehouse_id = $3) GROUP BY product_id
        )
        SELECT p.sku, p.name, c.name AS category, p.unit,
-              COALESCE(sold.units, 0)::float AS sold, COALESCE(stock.qty, 0)::float AS stock, p.cost::float AS cost
+              COALESCE(sold.units, 0)::float AS sold, COALESCE(stock.qty, 0)::float AS stock, p.cost::float AS cost,
+              first.day::text AS "firstSale"
          FROM products p
+         LEFT JOIN first ON first.product_id = p.id
          LEFT JOIN sold ON sold.product_id = p.id
          LEFT JOIN stock ON stock.product_id = p.id
          LEFT JOIN categories c ON c.id = p.category_id
@@ -213,10 +218,15 @@ export class ReportsService {
           AND (COALESCE(sold.units, 0) > 0 OR COALESCE(stock.qty, 0) > 0)`,
       [from, to, filters.warehouseId ?? null, filters.categoryId ?? null],
     );
-    const factor = 365 / days;
+    let shorter = 0;
     const computed = rows.map((r) => {
-      const perDay = r.sold / days;
-      const rotation = r.stock > 0 ? Math.round(((r.sold * factor) / r.stock) * 100) / 100 : null;
+      // Un producto que empezó a venderse dentro del periodo se mide desde su primera venta:
+      // si no, un producto nuevo parecería no rotar.
+      const start = r.firstSale && r.firstSale > from ? r.firstSale : from;
+      const window = Math.max(1, Math.round((Date.parse(to) - Date.parse(start)) / DAY) + 1);
+      if (window < days) shorter++;
+      const perDay = r.sold / window;
+      const rotation = r.stock > 0 ? Math.round(((perDay * 365) / r.stock) * 100) / 100 : null;
       const daysOfInventory = perDay > 0 ? Math.round(Math.max(0, r.stock) / perDay) : null;
       return {
         sku: r.sku,
@@ -254,7 +264,10 @@ export class ReportsService {
       total: computed.length,
       totals: computed.length ? { name: 'Total', soldCost: sum('soldCost'), stockValue: sum('stockValue') } : null,
       filtersApplied: [{ label: 'Periodo', value: `${fmtDate(from)} a ${fmtDate(to)}` }],
-      notes: ['«Días de inventario» vacío = no hubo ventas en el periodo.'],
+      notes: [
+        '«Días de inventario» vacío = no hubo ventas en el periodo.',
+        ...(shorter ? [`${shorter} producto(s) empezaron a venderse dentro del periodo: se miden desde su primera venta.`] : []),
+      ],
     };
   }
 
@@ -317,12 +330,12 @@ export class ReportsService {
       rows: rows.map(({ total: _t, ...r }: ReportRow) => ({
         ...r,
         method: METHOD_LABELS[r.method as string] ?? (r.method === 'COMBO' ? 'Combinación de técnicas' : r.method),
-        accuracy: typeof r.wape === 'number' ? Math.max(0, 1 - r.wape) : null,
+        accuracy: typeof r.wape === 'number' ? Math.max(0, Math.round((1 - r.wape) * 10000) / 10000) : null,
       })),
       total: rows[0]?.total ?? 0,
       totals:
         run.overallWape !== null
-          ? { name: 'General', accuracy: Math.max(0, 1 - run.overallWape), wape: run.overallWape, baselineWape: run.baselineWape }
+          ? { name: 'General', accuracy: Math.max(0, Math.round((1 - run.overallWape) * 10000) / 10000), wape: run.overallWape, baselineWape: run.baselineWape }
           : null,
       filtersApplied: applied,
       notes: [],

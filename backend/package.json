@@ -15,6 +15,7 @@
     "seed": "node dist/database/seeds/seed.js",
     "seed:products": "node dist/database/seeds/seed-products.js",
     "seed:demo": "node dist/database/seeds/seed-demo.js",
+    "seed:reset": "node dist/database/seeds/seed-demo.js --reset",
     "eval:data-chat": "node dist/data-chat/eval-data-chat.js"
   },
   "engines": {

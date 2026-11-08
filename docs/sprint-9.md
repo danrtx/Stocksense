@@ -51,12 +51,12 @@ La captura del chat se tomó con un Gemini simulado que pide las herramientas (e
 
 ```bash
 docker compose up --build -d
-docker compose exec backend npm run seed:demo
+docker compose exec backend npm run seed:reset
 ```
 
-1. Entra como administrador y pulsa **Pronóstico › Modelos › Reentrenar ahora**. El flujo de datos busca las anomalías cada día; para no esperar, pulsa **Reportes › Anomalías › Buscar ahora**.
+1. Espera uno o dos minutos: la carga de datos pide un reentrenamiento y el servicio de pronóstico calcula el pronóstico y busca las anomalías solo.
 2. **Reportes:** elige un reporte, cambia los filtros y descarga el Excel y el PDF.
-3. **Reportes › Anomalías:** deberían aparecer los 3 casos sembrados (pintura, chazo y cemento). Pide las posibles causas y marca uno como explicado.
+3. **Reportes › Anomalías:** aparecen los 3 casos sembrados (pintura, chazo y cemento) y alguno real de los datos, como una caída de ventas por quiebre de stock. Pide las posibles causas y marca uno como explicado.
 4. **Preguntar:** con `GEMINI_API_KEY` escribe preguntas libres; sin clave, las consultas sugeridas responden en modo directo.
 5. Entra como `bruno@demo.co` (Bodega): en Preguntar no hay consultas de costos y no aparece Reportes.
 

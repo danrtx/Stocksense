@@ -33,7 +33,7 @@ Cuando termine de arrancar (la primera vez tarda unos minutos mientras descarga 
 
 Entra con el administrador que definiste en `.env` (por defecto `admin@stocksense.local` / `CambiaEsta2026`). **Cambia esa contraseña y el `JWT_SECRET` antes de usarlo con datos reales.**
 
-¿Quieres verlo con datos? Con todo encendido, en otra terminal: `docker compose exec backend npm run seed:demo` (36 productos, 3 bodegas, 4 proveedores, 18 meses de ventas, alertas, órdenes de compra y una cuenta por rol: `marta@demo.co` Compras, `bruno@demo.co` Bodega y `lina@demo.co` Analista, todas con la clave `ClaveSegura2026`). Si lo vuelves a correr no duplica datos: restablece la clave de esas tres cuentas, completa las ventas que falten hasta ayer (así la demo no queda vieja) y, la primera vez, siembra tres casos raros para la bandeja de anomalías. Después pulsa Pronóstico › Modelos › «Reentrenar ahora».
+¿Quieres verlo con datos? Con todo encendido, en otra terminal: `docker compose exec backend npm run seed:reset`. Borra los datos del inventario (no las cuentas de usuario) y carga una ferretería de Pasto de demostración: 68 productos en 9 categorías, 3 bodegas, 6 proveedores, 18 meses de ventas con temporadas, quincenas y festivos, y 5 meses de kardex con compras, transferencias, conteos físicos y alertas. Crea una cuenta por rol: `marta@demo.co` Compras, `bruno@demo.co` Bodega y `lina@demo.co` Analista, todas con la clave `ClaveSegura2026`. También pide un reentrenamiento: en uno o dos minutos aparecen el pronóstico y las anomalías sin pulsar nada. `npm run seed:demo` hace lo mismo solo si no hay datos; si ya los hay, completa las ventas que falten hasta ayer. Detalle en [docs/datos-demo.md](docs/datos-demo.md).
 
 Para apagar todo: `Ctrl + C` y luego `docker compose down`. Para borrar también la base de datos: `docker compose down -v`.
 
@@ -78,7 +78,7 @@ npm run dev                  # web en http://localhost:5173
 
 Sin Mailpit, los correos de invitación aparecen en la consola de la API (busca `[correo simulado]`).
 
-¿Quieres probar con datos? `npm run seed:demo` dentro de `backend/` (después de `npm run seed`). Para medir rendimiento con muchos productos: `npm run seed:products -- 10000`.
+¿Quieres probar con datos? `npm run seed:reset` dentro de `backend/` (después de `npm run seed`). Para medir rendimiento con muchos productos: `npm run seed:products -- 10000`.
 
 El servicio de pronóstico (opcional al programar) se arranca así:
 
