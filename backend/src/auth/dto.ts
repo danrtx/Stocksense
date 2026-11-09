@@ -29,4 +29,9 @@ export class UpdatePreferencesDto {
   @IsOptional()
   @IsBoolean({ message: 'Indica sí o no.' })
   notifyStockAlertsEmail?: boolean;
+
+  /** HU-30: true al terminar u omitir el recorrido guiado; false para volver a mostrarlo. */
+  @IsOptional()
+  @IsBoolean({ message: 'Indica sí o no.' })
+  tourCompleted?: boolean;
 }

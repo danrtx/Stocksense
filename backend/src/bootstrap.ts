@@ -21,7 +21,9 @@ export function configureApp(app: INestApplication): INestApplication {
       stopAtFirstError: true,
     }),
   );
-  setupApiDocs(app);
+  // En producción la documentación interactiva queda apagada salvo que se pida (API_DOCS=true):
+  // no hace falta mostrarle a cualquiera el mapa completo de la API (revisión OWASP, HU-29).
+  if (config.get<string>('NODE_ENV') !== 'production' || config.get<string>('API_DOCS') === 'true') setupApiDocs(app);
   return app;
 }
 

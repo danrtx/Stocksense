@@ -155,5 +155,10 @@
   {"q": "un producto se vendió demasiado y no sé por qué", "article": "anomalias"},
   {"q": "dónde salen las ventas extrañas de la semana", "article": "anomalias"},
   {"q": "quiero hacerle preguntas a mis datos con inteligencia artificial", "article": "preguntar-datos"},
-  {"q": "dónde le escribo una pregunta sobre mi inventario", "article": "preguntar-datos"}
+  {"q": "dónde le escribo una pregunta sobre mi inventario", "article": "preguntar-datos"},
+  {"q": "cuantas preguntas resuelve el modelo sin gemini", "article": "aprendizaje-asistente"},
+  {"q": "donde reviso los ejemplos que propuso el chat", "article": "aprendizaje-asistente"},
+  {"q": "quiero ver las preguntas que el asistente no supo responder", "article": "aprendizaje-asistente"},
+  {"q": "como repito el tour de bienvenida", "article": "recorrido-guiado"},
+  {"q": "quiero ver otra vez la guia de inicio", "article": "recorrido-guiado"}
 ]

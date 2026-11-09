@@ -34,7 +34,7 @@ export function KpiSection({ showCost }: { showCost: boolean }) {
   }, [warehouseId, categoryId])
 
   return (
-    <section className="kpi-section" aria-labelledby="kpi-title" aria-busy={loading}>
+    <section className="kpi-section" aria-labelledby="kpi-title" aria-busy={loading} data-tour="kpis">
       <div className="kpi-head">
         <h2 id="kpi-title">Indicadores del inventario</h2>
         <div className="kpi-filters">

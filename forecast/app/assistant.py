@@ -198,8 +198,38 @@ HASH_SQL = """SELECT md5(coalesce(string_agg(id || title || examples::text || ar
                 AS hash, count(*)::int AS n FROM assistant_articles"""
 
 
+APPROVED_SQL = """SELECT article_id, text FROM assistant_examples WHERE status = 'APPROVED' ORDER BY reviewed_at"""
+
+
 def load_articles(conn: psycopg.Connection) -> list[dict]:
     return [dict(r) for r in conn.execute(ARTICLES_SQL).fetchall()]
+
+
+def load_approved_examples(conn: psycopg.Connection) -> list[dict]:
+    """HU-36: ejemplos que una persona administradora aprobó (preguntas reales bien respondidas)."""
+    try:
+        with conn.transaction():
+            rows = conn.execute(APPROVED_SQL).fetchall()
+    except psycopg.errors.UndefinedTable:  # base sin la migración del sprint 10
+        return []
+    pairs = [(r["article_id"], r["text"]) if isinstance(r, dict) else (r[0], r[1]) for r in rows]
+    return [{"article": article, "text": text} for article, text in pairs]
+
+
+def merge_examples(articles: list[dict], approved: list[dict], test_set: list[dict]) -> tuple[list[dict], int]:
+    """Suma los ejemplos aprobados a sus fichas. Los que repiten una pregunta del conjunto de
+    prueba se dejan por fuera: si no, el modelo se evaluaría con preguntas que ya vio."""
+    held_out = {normalize(c["q"]) for c in test_set}
+    by_id = {a["id"]: a for a in articles}
+    used = 0
+    merged = {a["id"]: list(a["examples"]) for a in articles}
+    for ex in approved:
+        if ex["article"] not in by_id or normalize(ex["text"]) in held_out:
+            continue
+        if ex["text"] not in merged[ex["article"]]:
+            merged[ex["article"]].append(ex["text"])
+            used += 1
+    return [{**a, "examples": merged[a["id"]]} for a in articles], used
 
 
 def articles_hash(conn: psycopg.Connection) -> tuple[str, int]:
@@ -251,6 +281,25 @@ def evaluate(model: AssistantModel, test_set: list[dict]) -> dict:
     }
 
 
+def decide(accuracy: float, active: dict | None, total: int, approved: int = 0) -> tuple[bool, str]:
+    """HU-36: la versión nueva solo reemplaza a la vigente si su acierto no baja."""
+    extra = f" Incluye {approved} ejemplos aprobados." if approved else ""
+    goal = "" if accuracy >= TARGET_ACCURACY else " Está debajo de la meta de 85 %."
+    if active is None:
+        first = "Se activa porque no había otro modelo."
+        return True, f"Acierto {pct(accuracy)} en {total} preguntas no vistas. {first}{goal}{extra}"
+    previous = float(active["accuracy"] or 0)
+    if accuracy + 1e-9 >= previous:
+        return True, (
+            f"Acierto {pct(accuracy)} en {total} preguntas no vistas (la v{active['version']} tenía {pct(previous)}). "
+            f"Reemplaza a la anterior.{goal}{extra}"
+        )
+    return False, (
+        f"Acierto {pct(accuracy)}, menor que el {pct(previous)} de la v{active['version']}. "
+        f"Se conserva la versión vigente.{extra}"
+    )
+
+
 def train_assistant(settings: Settings, trigger: str = "MANUAL", job_id: str | None = None) -> dict:
     """Entrena, evalúa y guarda una versión. Se activa si llega a la meta (85 %)."""
     started = time.monotonic()
@@ -262,24 +311,18 @@ def train_assistant(settings: Settings, trigger: str = "MANUAL", job_id: str | N
         test_set = load_test_set(settings.assistant_test_set)
         missing = sorted({c["article"] for c in test_set} - known)
         test_set = [c for c in test_set if c["article"] in known]
+        articles, approved_used = merge_examples(articles, load_approved_examples(conn), test_set)
         model = AssistantModel.train(articles)
         metrics = evaluate(model, test_set)
         metrics["missingArticles"] = missing
         metrics["trigger"] = trigger
+        metrics["approvedExamples"] = approved_used
         digest, _ = articles_hash(conn)
         train_size = len(build_training_set(articles)[0])
         accuracy = metrics["accuracy"]
         active = conn.execute("SELECT version, accuracy::float AS accuracy FROM assistant_models WHERE is_active").fetchone()
 
-        if accuracy >= TARGET_ACCURACY:
-            accept, reason = True, f"Acierto {pct(accuracy)} en {metrics['total']} preguntas no vistas (meta 85 %)."
-        elif active is None:
-            accept, reason = True, f"Acierto {pct(accuracy)}, debajo de la meta de 85 %. Se activa porque no había otro modelo."
-        else:
-            accept, reason = (
-                False,
-                (f"Acierto {pct(accuracy)}, debajo de la meta de 85 %. Se conserva la versión v{active['version']}."),
-            )
+        accept, reason = decide(accuracy, active, metrics["total"], approved_used)
 
         with conn.transaction():
             if accept:

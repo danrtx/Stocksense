@@ -53,6 +53,10 @@ export class User {
   @Column({ name: 'notify_stock_alerts_email', default: true })
   notifyStockAlertsEmail: boolean;
 
+  /** HU-30: cuándo terminó u omitió el recorrido guiado (null = todavía no lo ha visto). */
+  @Column({ name: 'tour_completed_at', type: 'timestamptz', nullable: true })
+  tourCompletedAt: Date | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 

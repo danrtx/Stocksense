@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { api, ApiError } from '../api/client'
 import type { AiFeedback, AiSettings, AiUsage, AssistantModels } from '../api/types'
@@ -139,9 +140,12 @@ export function AiSettingsPage() {
           <div className="card-head">
             <div>
               <h2>Modelo propio del asistente</h2>
-              <p className="muted small">{models.knowledge.articles} fichas · {formatNumber(models.knowledge.examples)} preguntas de ejemplo. Se entrena solo cuando cambian las fichas.</p>
+              <p className="muted small">{models.knowledge.articles} fichas · {formatNumber(models.knowledge.examples)} preguntas de ejemplo. Se entrena cuando cambian las fichas y cada domingo con los ejemplos aprobados; la versión nueva solo reemplaza a la anterior si su acierto no baja.</p>
             </div>
-            <button className="btn btn-primary" onClick={train} disabled={training}>{training ? 'Entrenando…' : 'Entrenar ahora'}</button>
+            <div className="row-actions">
+              <Link className="btn btn-ghost" to="/configuracion/asistente">Aprendizaje y ejemplos</Link>
+              <button className="btn btn-primary" onClick={train} disabled={training}>{training ? 'Entrenando…' : 'Entrenar ahora'}</button>
+            </div>
           </div>
           {active ? (
             <div className="result-stats card dash-card">

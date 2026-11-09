@@ -41,6 +41,7 @@ import { ThemeProvider } from './theme/ThemeContext'
 
 // El formulario de movimientos se descarga al abrirlo (mantiene el paquete inicial bajo 500 kB).
 const MovementFormPage = lazy(() => import('./pages/inventory/MovementFormPage').then((m) => ({ default: m.MovementFormPage })))
+const AssistantLearningPage = lazy(() => import('./pages/AssistantLearningPage').then((m) => ({ default: m.AssistantLearningPage })))
 const AskPage = lazy(() => import('./pages/AskPage').then((m) => ({ default: m.AskPage })))
 const ReportsPage = lazy(() => import('./pages/reports/ReportsPage').then((m) => ({ default: m.ReportsPage })))
 const AnomaliesPage = lazy(() => import('./pages/reports/AnomaliesPage').then((m) => ({ default: m.AnomaliesPage })))
@@ -115,6 +116,7 @@ export default function App() {
             <Route path="usuarios" element={need('users:manage', <UsersPage />)} />
             <Route path="auditoria" element={need('audit:read', <AuditPage />)} />
             <Route path="configuracion/ia" element={need('ai:manage', <AiSettingsPage />)} />
+            <Route path="configuracion/asistente" element={need('ai:manage', <AssistantLearningPage />)} />
             <Route path="reportes" element={need('reports:read', <Suspense fallback={loading}><ReportsLayout /></Suspense>)}>
               <Route index element={<Suspense fallback={loading}><ReportsPage /></Suspense>} />
               <Route path="anomalias" element={<Suspense fallback={loading}><AnomaliesPage /></Suspense>} />

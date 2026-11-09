@@ -12,10 +12,12 @@
     "test": "jest --runInBand",
     "test:cov": "jest --runInBand --coverage",
     "migration:run": "typeorm migration:run -d dist/database/data-source.js",
+    "migration:revert": "typeorm migration:revert -d dist/database/data-source.js",
     "seed": "node dist/database/seeds/seed.js",
     "seed:products": "node dist/database/seeds/seed-products.js",
     "seed:demo": "node dist/database/seeds/seed-demo.js",
     "seed:reset": "node dist/database/seeds/seed-demo.js --reset",
+    "seed:load-users": "node dist/database/seeds/seed-load-users.js",
     "eval:data-chat": "node dist/data-chat/eval-data-chat.js"
   },
   "engines": {
@@ -63,5 +65,8 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.71.1"
+  },
+  "overrides": {
+    "multer": "^2.5.0"
   }
 }

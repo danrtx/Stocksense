@@ -32,6 +32,8 @@ log = logging.getLogger("stocksense.jobs")
 
 SCHEDULE_EVERY_SECONDS = 60
 DEFAULT_RETRAIN = {"enabled": True, "weekday": 1, "time": "03:00"}
+# HU-36: el asistente se reentrena cada domingo con los ejemplos aprobados en la semana.
+DEFAULT_ASSISTANT_RETRAIN = {"enabled": True, "weekday": 7, "time": "04:00"}
 
 
 def enqueue(conn: psycopg.Connection, kind: str, trigger: str, requested_by: str | None = None, slot: str | None = None):
@@ -124,6 +126,10 @@ def schedule(settings: Settings, now: datetime | None = None) -> None:
         slot = retrain_slot(config, now)
         if slot is not None and enqueue(conn, "FORECAST_RETRAIN", "SCHEDULED", None, f"retrain:{slot:%Y-%m-%dT%H:%M}"):
             log.info("Reentrenamiento programado encolado (%s).", f"{slot:%Y-%m-%d %H:%M}")
+        assistant = {**DEFAULT_ASSISTANT_RETRAIN, **(get_setting(conn, "assistant.retrain", DEFAULT_ASSISTANT_RETRAIN) or {})}
+        slot = retrain_slot(assistant, now)
+        if slot is not None and enqueue(conn, "ASSISTANT_TRAIN", "SCHEDULED", None, f"assistant-retrain:{slot:%Y-%m-%dT%H:%M}"):
+            log.info("Reentrenamiento programado del asistente encolado (%s).", f"{slot:%Y-%m-%d %H:%M}")
         ensure_assistant_model(conn)
 
 

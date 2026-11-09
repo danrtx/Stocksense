@@ -31,6 +31,8 @@ export interface Profile {
   role: Role
   permissions: Permission[]
   preferences?: { notifyStockAlertsEmail: boolean }
+  /** HU-30: null = todavía no ha visto el recorrido guiado. */
+  tourCompletedAt?: string | null
 }
 
 export interface UserRow {
@@ -739,6 +741,7 @@ export interface ChatMessage {
   confidence: number | null
   modelVersion: number | null
   createdAt: string
+  rating?: 1 | -1 | null
   title?: string
   steps?: string[]
   route?: string | null
@@ -843,4 +846,51 @@ export interface DataChatAnswer {
   suggestions: ChatSuggestion[]
   model?: string
   latencyMs?: number
+}
+
+// ------------------------------------------------------------------ Sprint 10
+
+export type ExampleStatus = 'PROPOSED' | 'APPROVED' | 'REJECTED'
+
+export interface AssistantExample {
+  id: string
+  articleId: string
+  articleTitle: string
+  text: string
+  status: ExampleStatus
+  origin: 'GEMINI' | 'MANUAL'
+  proposedAt: string
+  reviewedAt: string | null
+  reviewedBy: string | null
+  answer: string | null
+}
+
+export interface AssistantExamples {
+  items: AssistantExample[]
+  counts: { proposed: number; approved: number; rejected: number }
+  articles: { id: string; title: string; section: string }[]
+}
+
+export interface AssistantMetrics {
+  days: number
+  totals: {
+    total: number
+    model: number
+    gemini: number
+    unanswered: number
+    noPermission: number
+    ratedUp: number
+    ratedDown: number
+    modelUp: number
+    modelDown: number
+    geminiUp: number
+    geminiDown: number
+  }
+  shares: { model: number | null; gemini: number | null; unanswered: number | null; noPermission: number | null }
+  satisfaction: number | null
+  weeks: { week: string; total: number; model: number; gemini: number; unanswered: number }[]
+  unanswered: { id: string; question: string; createdAt: string; reason: 'RATED_DOWN' | 'FALLBACK' | 'UNKNOWN'; source: AnswerSource }[]
+  examples: { pending: number; approved: number }
+  model: { version: number; accuracy: number; trainedAt: string; approvedExamples: number | null } | null
+  retrain: { enabled: boolean; weekday: number; time: string; label: string }
 }

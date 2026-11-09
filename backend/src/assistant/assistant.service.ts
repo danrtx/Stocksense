@@ -36,6 +36,7 @@ export interface AssistantMessage {
   confidence: number | null;
   modelVersion: number | null;
   createdAt: string;
+  rating?: 1 | -1 | null;
   title?: string;
   steps?: string[];
   route?: string | null;
@@ -137,7 +138,7 @@ export class AssistantService {
     const rows = await this.db.query(
       `SELECT * FROM (
          SELECT id, role, content, source, article_id AS "articleId", confidence::float AS confidence,
-                model_version AS "modelVersion", payload, created_at AS "createdAt"
+                model_version AS "modelVersion", rating, payload, created_at AS "createdAt"
            FROM assistant_messages WHERE conversation_id = $1 ORDER BY created_at DESC LIMIT $2) m
         ORDER BY "createdAt"`,
       [conversationId, limit],

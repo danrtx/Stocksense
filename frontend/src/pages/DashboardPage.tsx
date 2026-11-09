@@ -4,7 +4,8 @@ import { api, ApiError } from '../api/client'
 import { ROLE_LABELS, UNIT_LABELS, type DashboardSummary, type ForecastRunInfo, type ForecastSummaryRow, type RecentAccuracy } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { Icon, type IconName } from '../components/Icon'
-import { Alert, InfoTip } from '../components/ui'
+import { PAGE_HELP } from '../lib/pageHelp'
+import { Alert, InfoTip, PageHelp } from '../components/ui'
 import { KpiSection } from '../components/KpiSection'
 import type { StockAlert } from '../api/types'
 import type { Page } from '../api/client'
@@ -60,6 +61,7 @@ export function DashboardPage() {
               <Icon name="plus" size={18} /> Nuevo producto
             </Link>
           )}
+          <PageHelp help={PAGE_HELP['/']} />
         </div>
       </div>
 

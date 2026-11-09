@@ -47,6 +47,19 @@ export function AssistantChat() {
     return () => document.removeEventListener('keydown', onKey)
   }, [open, reporting])
 
+  /** T-36.1: «Me sirvió» o «No me sirvió». */
+  async function rate(message: ChatMessage, rating: 1 | -1) {
+    const previous = message.rating ?? null
+    const set = (value: 1 | -1 | null) =>
+      setConversation((c) => (c ? { ...c, messages: c.messages.map((m) => (m.id === message.id ? { ...m, rating: value } : m)) } : c))
+    set(rating)
+    try {
+      await api(`/assistant/messages/${message.id}/rating`, { method: 'POST', json: { rating } })
+    } catch {
+      set(previous)
+    }
+  }
+
   async function send(question: string) {
       const q = question.trim()
       if (!q || busy) return
@@ -150,6 +163,17 @@ export function AssistantChat() {
                   {(m.source === 'MODEL' || m.source === 'CONTEXT') && <span>Modelo propio · confianza {formatPct(m.confidence, 0)}{m.source === 'CONTEXT' ? ' · con el contexto' : ''}</span>}
                   {m.source === 'GEMINI' && (reported.has(m.id) ? <span>Gracias por el reporte.</span> : <button className="link-btn" onClick={() => setReporting(m)}>Reportar un error</button>)}
                 </div>
+                {!m.id.startsWith('pendiente-') && m.source !== 'NO_PERMISSION' && (
+                  <div className="chat-rate small muted" role="group" aria-label="¿Te sirvió esta respuesta?">
+                    <span>{m.rating ? 'Gracias por calificar.' : '¿Te sirvió?'}</span>
+                    <button className={`icon-btn is-plain ${m.rating === 1 ? 'is-on' : ''}`} aria-label="Me sirvió" aria-pressed={m.rating === 1} onClick={() => rate(m, 1)}>
+                      <Icon name="thumbUp" size={16} />
+                    </button>
+                    <button className={`icon-btn is-plain ${m.rating === -1 ? 'is-on' : ''}`} aria-label="No me sirvió" aria-pressed={m.rating === -1} onClick={() => rate(m, -1)}>
+                      <Icon name="thumbDown" size={16} />
+                    </button>
+                  </div>
+                )}
               </div>
             )))}
             {busy && <div className="chat-msg is-bot is-typing" aria-label="Escribiendo"><span /><span /><span /></div>}

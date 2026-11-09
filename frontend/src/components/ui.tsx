@@ -1,14 +1,58 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useInRouterContext, useLocation } from 'react-router-dom'
+import { helpFor, type PageHelpText } from '../lib/pageHelp'
 
 export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: ReactNode }) {
+  const inRouter = useInRouterContext()
   return (
     <div className="page-header">
       <div>
-        <h1>{title}</h1>
+        <div className="page-title-row">
+          <h1>{title}</h1>
+          {inRouter && <RouteHelp />}
+        </div>
         {subtitle && <p className="muted">{subtitle}</p>}
       </div>
       {actions && <div className="page-actions">{actions}</div>}
+    </div>
+  )
+}
+
+function RouteHelp() {
+  const { pathname } = useLocation()
+  const help = helpFor(pathname)
+  return help ? <PageHelp help={help} /> : null
+}
+
+/** HU-30: botón «?» con una explicación corta de la pantalla y un ejemplo. */
+export function PageHelp({ help }: { help: PageHelpText }) {
+  const id = useId()
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const close = (e: MouseEvent | KeyboardEvent) => {
+      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !ref.current?.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    document.addEventListener('keydown', close)
+    return () => {
+      document.removeEventListener('mousedown', close)
+      document.removeEventListener('keydown', close)
+    }
+  }, [open])
+  return (
+    <div className="page-help" ref={ref}>
+      <button type="button" className="icon-btn page-help-btn" aria-label={`Ayuda: ${help.title}`} title="Ayuda de esta pantalla" aria-expanded={open} aria-controls={id} onClick={() => setOpen((v) => !v)}>
+        ?
+      </button>
+      {open && (
+        <div className="page-help-pop card" id={id} role="note">
+          <strong>{help.title}</strong>
+          <p>{help.text}</p>
+          <p className="page-help-example"><span>Ejemplo:</span> {help.example}</p>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,13 +1,17 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { ROLE_LABELS, type Permission } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { useTheme } from '../theme/ThemeContext'
 import { initials } from '../lib/format'
 import { AlertsBell } from './AlertsBell'
+import { openTour } from '../lib/tour'
 import { AssistantChat } from './AssistantChat'
 import { BrandLockup } from './Brand'
 import { Icon, type IconName } from './Icon'
+
+// El recorrido solo hace falta una vez: se descarga aparte para no engordar el paquete inicial.
+const GuidedTour = lazy(() => import('./GuidedTour').then((m) => ({ default: m.GuidedTour })))
 
 interface NavItem {
   to: string
@@ -96,6 +100,7 @@ export function Layout() {
             role={ROLE_LABELS[user.role]}
             links={ADMIN_NAV.filter((item) => !item.anyOf || item.anyOf.some((p) => can(p)))}
             onLogout={() => logout()}
+            onTour={openTour}
           />
         </div>
       </header>
@@ -129,6 +134,9 @@ export function Layout() {
       </main>
 
       <AssistantChat />
+      <Suspense fallback={null}>
+        <GuidedTour />
+      </Suspense>
     </div>
   )
 }
@@ -184,12 +192,14 @@ function UserMenu({
   role,
   links,
   onLogout,
+  onTour,
 }: {
   name: string
   email: string
   role: string
   links: { to: string; label: string; icon: IconName }[]
   onLogout: () => void
+  onTour: () => void
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -225,6 +235,9 @@ function UserMenu({
               <Icon name={l.icon} size={18} /> {l.label}
             </Link>
           ))}
+          <button className="menu-item" role="menuitem" onClick={() => { setOpen(false); onTour() }}>
+            <Icon name="sparkle" size={18} /> Ver el recorrido guiado
+          </button>
           <button className="menu-item" role="menuitem" onClick={onLogout}>
             <Icon name="logout" size={18} /> Cerrar sesión
           </button>

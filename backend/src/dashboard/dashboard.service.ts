@@ -151,16 +151,16 @@ export class DashboardService {
     const [sold] = await this.db.query(
       `SELECT COALESCE(sum(s.quantity), 0)::float AS units,
               round(COALESCE(sum(s.quantity * p.cost), 0), 2)::float AS cost,
-              min(s.sold_on)::text AS "firstSale"
+              (CURRENT_DATE - min(s.sold_on) + 1)::int AS "windowDays"
          FROM sales s JOIN products p ON p.id = s.product_id
         WHERE s.sold_on > CURRENT_DATE - 365 AND p.is_active
           AND ($1::uuid IS NULL OR s.warehouse_id = $1)
           AND ($2::uuid IS NULL OR p.category_id = $2)`,
       params,
     );
-    const windowDays = sold.firstSale
-      ? Math.min(365, Math.max(1, Math.round((Date.now() - Date.parse(sold.firstSale)) / 86_400_000)))
-      : 0;
+    // Días de la ventana contados en la base (fechas, sin horas): antes se restaban horas en
+    // Node y el resultado cambiaba según la hora del día (4 o 4,01 vueltas con los mismos datos).
+    const windowDays = sold.windowDays ? Math.min(365, Math.max(1, sold.windowDays)) : 0;
     const factor = windowDays ? 365 / windowDays : 0;
     const base = canSeeCost ? stock.inventoryValue : stock.unitsOnHand;
     const annualSold = (canSeeCost ? sold.cost : sold.units) * factor;

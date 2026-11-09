@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { UserThrottlerGuard } from './common/auth/user-throttler.guard';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AiModule } from './ai/ai.controller';
 import { AlertsModule } from './alerts/alerts.module';
@@ -67,7 +68,7 @@ import { UsersModule } from './users/users.module';
   controllers: [HealthController, RolesController],
   providers: [
     // Orden importa: primero límite de peticiones, luego sesión, luego permisos.
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: UserThrottlerGuard },
     { provide: APP_GUARD, useExisting: AuthGuard },
     { provide: APP_GUARD, useClass: PermissionsGuard },
   ],

@@ -94,3 +94,33 @@ def test_se_guarda_y_se_carga(model):
     started = time.perf_counter()
     assert loaded.predict("ver el stock actual")["articleId"] == "stock-actual"
     assert (time.perf_counter() - started) < 0.3
+
+
+# ------------------------------------------------------------------ HU-36
+
+
+def test_los_ejemplos_aprobados_se_suman_a_su_ficha_sin_filtrar_el_conjunto_de_prueba():
+    from app.assistant import merge_examples
+
+    articles = [{"id": "a", "examples": ["hola"]}, {"id": "b", "examples": []}]
+    approved = [
+        {"article": "a", "text": "¿Cómo hago un pedido nuevo?"},
+        {"article": "b", "text": "Registrar una salida de bodega"},  # está en el conjunto de prueba
+        {"article": "zz", "text": "ficha que ya no existe"},
+    ]
+    test_set = [{"article": "b", "q": "registrar una salida de bodega"}]
+    merged, used = merge_examples(articles, approved, test_set)
+    assert used == 1
+    assert merged[0]["examples"] == ["hola", "¿Cómo hago un pedido nuevo?"]
+    assert merged[1]["examples"] == []
+
+
+def test_la_version_nueva_solo_reemplaza_si_el_acierto_no_baja():
+    from app.assistant import decide
+
+    assert decide(0.80, None, 100)[0] is True  # no había modelo
+    accept, reason = decide(0.90, {"version": 3, "accuracy": 0.88}, 157, approved=4)
+    assert accept and "v3" in reason and "4 ejemplos aprobados" in reason
+    assert decide(0.88, {"version": 3, "accuracy": 0.88}, 157)[0] is True  # igual: no baja
+    accept, reason = decide(0.86, {"version": 3, "accuracy": 0.88}, 157)
+    assert not accept and "Se conserva" in reason

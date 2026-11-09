@@ -21,6 +21,7 @@ from datetime import date, timedelta
 
 import numpy as np
 import psycopg
+from psycopg import sql
 from psycopg.rows import dict_row
 
 from .config import Settings
@@ -258,15 +259,10 @@ def _decide(previous, common: dict, test_weeks: int | None) -> tuple[str, str, f
 
 def _cleanup(conn: psycopg.Connection) -> None:
     """Conserva el detalle de las últimas versiones y de la activa; el resumen de las últimas 60."""
-    keep = """SELECT id FROM forecast_runs ORDER BY started_at DESC LIMIT %s"""
-    conn.execute(
-        f"""DELETE FROM forecasts WHERE run_id IN (
-              SELECT id FROM forecast_runs WHERE NOT is_active AND id NOT IN ({keep}))""",
-        (KEEP_DETAIL_RUNS,),
-    )
-    conn.execute(
-        f"""DELETE FROM forecast_product_models WHERE run_id IN (
-              SELECT id FROM forecast_runs WHERE NOT is_active AND id NOT IN ({keep}))""",
-        (KEEP_DETAIL_RUNS,),
-    )
-    conn.execute(f"DELETE FROM forecast_runs WHERE NOT is_active AND id NOT IN ({keep})", (KEEP_RUNS,))
+    # Todo el SQL es fijo; los nombres de tabla van como identificadores y el límite como parámetro.
+    recent = "SELECT id FROM forecast_runs ORDER BY started_at DESC LIMIT %s"
+    stale = "SELECT id FROM forecast_runs WHERE NOT is_active AND id NOT IN (" + recent + ")"  # nosec B608
+    for table in ("forecasts", "forecast_product_models"):
+        query = sql.SQL("DELETE FROM {} WHERE run_id IN (" + stale + ")").format(sql.Identifier(table))  # nosec B608
+        conn.execute(query, (KEEP_DETAIL_RUNS,))
+    conn.execute(sql.SQL("DELETE FROM forecast_runs WHERE id IN (" + stale + ")"), (KEEP_RUNS,))  # nosec B608

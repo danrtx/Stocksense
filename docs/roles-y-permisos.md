@@ -22,7 +22,7 @@ El sistema tiene 4 roles. Cada usuario tiene exactamente uno. La fuente de verda
 | `reports:read` | Ver y exportar reportes (Excel y PDF) y revisar anomalías | Sí | | | Sí |
 | `forecast:read` | Ver pronósticos, precisión, versiones del modelo, sugerencias de compra y pedir la explicación con IA | Sí | Sí | | Sí |
 | `forecast:run` | Preparar los datos, reentrenar el pronóstico y activar una versión | Sí | | | Sí |
-| `ai:manage` | Configuración de IA: umbrales, horario, límite de Gemini, consumo, reportes y modelo del asistente | Sí | | | |
+| `ai:manage` | Configuración de IA: umbrales, horario, límite de Gemini, consumo, reportes, modelo del asistente y su aprendizaje (aprobar ejemplos, métricas) | Sí | | | |
 
 ## Cómo se aplican
 

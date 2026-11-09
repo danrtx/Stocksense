@@ -24,6 +24,6 @@ import { Session } from './session.entity';
   ],
   controllers: [AuthController],
   providers: [AuthService, PasswordService, AuthGuard],
-  exports: [AuthService, PasswordService, AuthGuard],
+  exports: [AuthService, PasswordService, AuthGuard, JwtModule],
 })
 export class AuthModule {}

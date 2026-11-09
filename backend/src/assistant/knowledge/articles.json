@@ -1548,7 +1548,6 @@
         "¿Cuánto estamos gastando en Gemini?",
         "¿Dónde se cambia el límite mensual de IA?",
         "¿Cómo entreno el chatbot?",
-        "Quiero que el asistente pregunte menos a Gemini",
         "¿Dónde se configura el reentrenamiento semanal?"
       ],
       "keywords": [
@@ -1558,6 +1557,44 @@
         "umbral",
         "consumo",
         "costo"
+      ]
+    },
+    {
+      "id": "aprendizaje-asistente",
+      "title": "Ver cómo aprende el asistente y aprobar ejemplos",
+      "section": "Configuración",
+      "summary": "Muestra qué porcentaje de preguntas resuelve el modelo propio, cuántas necesitan a Gemini y cuáles quedaron sin respuesta. Ahí apruebas o descartas las preguntas que la gente marcó «Me sirvió» para que el modelo las aprenda en el próximo reentrenamiento.",
+      "route": "/configuracion/asistente",
+      "permissions": [
+        "ai:manage"
+      ],
+      "steps": [
+        "Abre «Configuración de IA» y pulsa «Aprendizaje y ejemplos».",
+        "Arriba ves cómo se resolvieron las preguntas del periodo: modelo propio, Gemini o sin respuesta.",
+        "En «Por aprobar» revisa cada pregunta, corrige el texto o la ficha si hace falta y pulsa «Aprobar» o «Descartar».",
+        "Los ejemplos aprobados entran al modelo el domingo a las 4:00 a. m., o antes si pulsas «Entrenar ahora». La versión nueva solo se activa si no acierta menos."
+      ],
+      "phrases": [
+        "aprobar ejemplos del asistente",
+        "ver las métricas del asistente",
+        "ver qué preguntas no respondió el asistente",
+        "revisar las calificaciones del chat",
+        "enseñarle preguntas nuevas al asistente"
+      ],
+      "examples": [
+        "Quiero que el asistente pregunte menos a Gemini",
+        "¿Qué porcentaje responde el modelo propio?",
+        "¿Dónde apruebo las preguntas que la gente calificó bien?",
+        "¿Qué preguntas se quedaron sin respuesta en el chat?",
+        "¿Cómo le enseño al chatbot preguntas nuevas?"
+      ],
+      "keywords": [
+        "aprendizaje",
+        "ejemplos",
+        "aprobar",
+        "calificación",
+        "métricas",
+        "sin respuesta"
       ]
     },
     {
@@ -1591,6 +1628,40 @@
         "chatbot",
         "ayuda",
         "hola"
+      ]
+    },
+    {
+      "id": "recorrido-guiado",
+      "title": "Ver el recorrido guiado y la ayuda de cada pantalla",
+      "section": "Ayuda",
+      "summary": "El recorrido de 5 pasos muestra el panel, las secciones, los accesos rápidos, las alertas y la ayuda. Aparece la primera vez que entras y lo puedes repetir cuando quieras. Además, cada pantalla tiene un botón «?» junto al título con una explicación corta y un ejemplo.",
+      "route": null,
+      "permissions": [],
+      "steps": [
+        "Pulsa tu avatar, arriba a la derecha.",
+        "Elige «Ver el recorrido guiado».",
+        "Avanza con «Siguiente» o con las flechas del teclado; «Omitir» o Esc lo cierra.",
+        "En cualquier pantalla, pulsa el «?» junto al título para ver la ayuda de esa pantalla."
+      ],
+      "phrases": [
+        "volver a ver el recorrido guiado",
+        "ver el tutorial de bienvenida",
+        "ver la ayuda de esta pantalla",
+        "repetir la introducción",
+        "ver la guía de inicio"
+      ],
+      "examples": [
+        "¿Cómo vuelvo a ver el tutorial?",
+        "Quiero repetir el recorrido de bienvenida",
+        "¿Dónde está la ayuda de cada pantalla?",
+        "¿Qué es el botón de interrogación junto al título?"
+      ],
+      "keywords": [
+        "recorrido",
+        "tutorial",
+        "bienvenida",
+        "guía",
+        "introducción"
       ]
     },
     {

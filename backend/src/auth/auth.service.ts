@@ -248,11 +248,16 @@ export class AuthService {
       role: user.role,
       permissions: permissionsFor(user.role as Role),
       preferences: { notifyStockAlertsEmail: user.notifyStockAlertsEmail },
+      tourCompletedAt: user.tourCompletedAt,
     };
   }
 
   /** HU-16: cada persona decide si recibe las alertas de stock bajo por correo. */
-  async updatePreferences(actor: AuthUser, prefs: { notifyStockAlertsEmail?: boolean }) {
+  async updatePreferences(actor: AuthUser, prefs: { notifyStockAlertsEmail?: boolean; tourCompleted?: boolean }) {
+    // HU-30: el recorrido guiado no se audita (no cambia datos del negocio).
+    if (prefs.tourCompleted !== undefined) {
+      await this.users.update(actor.id, { tourCompletedAt: prefs.tourCompleted ? new Date() : null });
+    }
     if (prefs.notifyStockAlertsEmail !== undefined) {
       await this.users.update(actor.id, { notifyStockAlertsEmail: prefs.notifyStockAlertsEmail });
       await this.audit.record({

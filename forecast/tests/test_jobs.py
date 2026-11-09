@@ -173,3 +173,48 @@ def test_entrenar_el_asistente_por_la_cola(settings):
         assert r.json()["articleId"] == "registrar-salida" and r.json()["version"] == model["version"]
         r = client.post("/assistant/similar", json={"text": "proveedores", "k": 2}, headers=token)
         assert len(r.json()["items"]) == 2
+
+
+@needs_db
+def test_el_asistente_se_reentrena_cada_semana_con_los_ejemplos_aprobados(settings):
+    from tests.test_assistant import KB, articles_from_repo
+
+    if not KB.exists():
+        pytest.skip("sin fichas")
+    with psycopg.connect(DB, autocommit=True, row_factory=dict_row) as conn:
+        conn.execute("TRUNCATE ml_jobs CASCADE")
+        conn.execute("DELETE FROM assistant_models")
+        conn.execute("DELETE FROM assistant_articles")
+        conn.execute("DELETE FROM app_settings WHERE key = 'assistant.retrain'")
+        # Solo interesa el asistente: el pronóstico semanal se apaga en esta prueba.
+        conn.execute(
+            """INSERT INTO app_settings (key, value) VALUES ('forecast.retrain', '{"enabled": false}')
+               ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value"""
+        )
+        for a in articles_from_repo():
+            conn.execute(
+                """INSERT INTO assistant_articles (id, title, summary, section, steps, examples, keywords)
+                   VALUES (%s, %s, %s, 'x', '[]', %s, %s)""",
+                (a["id"], a["title"], a["summary"], json.dumps(a["examples"]), a["keywords"]),
+            )
+        conn.execute(
+            """INSERT INTO assistant_examples (article_id, text, normalized, status, reviewed_at)
+               VALUES ('registrar-salida', 'necesito sacar mercancía dañada del sistema',
+                       'necesito sacar mercancia danada del sistema', 'APPROVED', now()),
+                      ('registrar-salida', 'esto no está aprobado todavía', 'esto no esta aprobado todavia', 'PROPOSED', NULL)"""
+        )
+    # Domingo 04:05: toca el turno semanal (y el primer entrenamiento, porque no hay modelo).
+    sunday = datetime(2026, 11, 8, 4, 5, tzinfo=BOGOTA)
+    jobs.schedule(settings, sunday)
+    jobs.schedule(settings, sunday)  # no se duplica
+    with psycopg.connect(DB, row_factory=dict_row) as conn:
+        sql = "SELECT trigger FROM ml_jobs WHERE kind = 'ASSISTANT_TRAIN' ORDER BY queued_at"
+        kinds = [r["trigger"] for r in conn.execute(sql)]
+    assert "SCHEDULED" in kinds and len(kinds) == 2
+    assert process_next(settings)
+    with psycopg.connect(DB, row_factory=dict_row) as conn:
+        model = conn.execute("SELECT * FROM assistant_models WHERE is_active").fetchone()
+        conn.execute("DELETE FROM app_settings WHERE key = 'forecast.retrain'")
+        conn.commit()
+    assert model["metrics"]["approvedExamples"] == 1
+    assert "1 ejemplos aprobados" in model["reason"]

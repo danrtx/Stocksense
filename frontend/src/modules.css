@@ -286,6 +286,9 @@ tr.is-current td { background: var(--mint-soft); font-weight: 700; }
 .chat-steps { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 0.92rem; }
 .chat-notice { color: var(--text-muted); font-style: italic; }
 .chat-meta:empty { display: none; }
+.chat-rate { display: flex; align-items: center; gap: 2px; margin-top: 4px; }
+.chat-rate .icon-btn { width: 32px; height: 32px; }
+.chat-rate .icon-btn.is-on, .ask-rate .icon-btn.is-on { color: var(--primary); background: var(--mint-soft); }
 .chat-msg.is-typing { display: flex; gap: 4px; padding: 14px; }
 .chat-msg.is-typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); animation: chat-dot 1s infinite ease-in-out; }
 .chat-msg.is-typing span:nth-child(2) { animation-delay: 0.15s; }
@@ -321,4 +324,61 @@ tr.is-current td { background: var(--mint-soft); font-weight: 700; }
   .section-block > .card-head, .explain-card .card-head { flex-wrap: wrap; }
   .section-block > .card-head .btn, .explain-card .card-head .btn { width: 100%; }
   .forecast-card-full .segmented { width: 100%; justify-content: space-between; }
+}
+
+/* ---------- Sprint 10: aprendizaje del asistente ---------- */
+.tab-count { display: inline-block; min-width: 22px; margin-left: 6px; padding: 0 6px; border-radius: 999px; background: var(--surface-2); font-size: 0.8em; }
+.field-inline { margin: 0; }
+.learn-trend { margin-top: 12px; }
+.learn-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 10px; color: var(--text-muted); }
+.learn-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+.learn-bars { display: flex; align-items: flex-end; gap: 10px; height: 160px; }
+.learn-bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; min-width: 0; }
+.learn-bar > .small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.learn-bar-stack { width: 100%; max-width: 48px; display: flex; flex-direction: column; border-radius: 6px 6px 2px 2px; overflow: hidden; min-height: 2px; }
+.learn-bar-stack span { display: block; min-height: 2px; }
+.learn-trend .is-model { background: var(--primary); }
+.learn-trend .is-gemini { background: var(--forecast); }
+.learn-trend .is-none { background: var(--danger); }
+.learn-examples { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.learn-example { padding: 16px; display: grid; gap: 10px; }
+.learn-example-fields { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+.learn-example-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+@media (max-width: 720px) {
+  .learn-example-fields { grid-template-columns: 1fr; }
+  .learn-bars { gap: 4px; }
+}
+
+/* ---------- Sprint 10: ayuda de cada pantalla y recorrido guiado (HU-30) ---------- */
+.page-title-row { display: flex; align-items: center; gap: 10px; }
+.page-title-row h1 { margin: 0; }
+.page-help { position: relative; display: inline-flex; }
+.page-help-btn { width: 34px; height: 34px; font-weight: 800; font-size: 1rem; color: var(--text-muted); }
+.page-help-btn[aria-expanded='true'] { background: var(--forecast-soft); color: var(--forecast-text); border-color: var(--forecast); }
+.page-help-pop { position: absolute; z-index: 46; top: calc(100% + 8px); left: 0; width: min(360px, calc(100vw - 32px)); padding: 16px; display: grid; gap: 6px; font-size: 0.9rem; line-height: 1.45; box-shadow: var(--shadow); }
+.page-help-pop p { margin: 0; color: var(--text); }
+.page-help-example { background: var(--mint-soft); color: var(--on-mint); border-radius: var(--radius-sm); padding: 8px 10px; }
+.page-help-example span { font-weight: 700; }
+.dash-head-actions .page-help-pop { left: auto; right: 0; }
+
+.tour { position: fixed; inset: 0; z-index: 90; }
+.tour-shade { position: absolute; inset: 0; background: rgb(15 25 20 / 55%); }
+.tour-spot { position: absolute; border-radius: 18px; box-shadow: 0 0 0 9999px rgb(15 25 20 / 55%); outline: 3px solid var(--forecast); transition: all 0.25s ease; pointer-events: none; }
+.tour-card { position: absolute; background: var(--surface); color: var(--text); border-radius: var(--radius-sm); padding: 18px 18px 14px; box-shadow: 0 18px 50px rgb(0 0 0 / 30%); display: grid; gap: 8px; outline: none; }
+.tour-card.is-center { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.tour-card h2 { margin: 0; font-size: 1.15rem; }
+.tour-card p { margin: 0; line-height: 1.5; }
+.tour-head { display: flex; justify-content: space-between; align-items: center; }
+.tour-count { color: var(--forecast-text); font-weight: 700; }
+.tour-dots { display: flex; gap: 6px; margin: 4px 0; }
+.tour-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+.tour-dots span.is-on { background: var(--forecast); width: 20px; border-radius: 4px; }
+.tour-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.tour-actions .row-actions .btn { margin-left: 6px; }
+@media (prefers-reduced-motion: reduce) { .tour-spot { transition: none; } }
+@media (max-width: 720px) {
+  .page-header { position: relative; }
+  .page-help { position: static; }
+  .page-help-pop, .dash-head-actions .page-help-pop { left: 0; right: 0; width: auto; }
+  .dash-head { position: relative; }
 }

@@ -33,7 +33,7 @@ export async function resetDatabase(db: DataSource): Promise<void> {
   await db.query(
     `TRUNCATE products, categories, audit_logs, sessions, users, warehouses, suppliers,
               sales_imports, api_keys, pipeline_runs, forecast_runs, ml_jobs, ai_usage, ai_feedback,
-              assistant_conversations RESTART IDENTITY CASCADE`,
+              assistant_conversations, assistant_examples RESTART IDENTITY CASCADE`,
   );
   // Ajustes de IA a sus valores por defecto (la migración los crea).
   await db.query(`DELETE FROM app_settings`);
