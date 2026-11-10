@@ -155,6 +155,7 @@ docs/              decisiones, roles y ambientes
 - [Entrega del sprint 10: calidad, ayuda, aprendizaje del asistente y lanzamiento](docs/sprint-10.md)
 - [Rendimiento, seguridad y respaldos](docs/rendimiento-y-seguridad.md)
 - [Piloto y salida a producción](docs/piloto-y-lanzamiento.md)
+- [Despliegue gratis en Oracle Cloud](docs/despliegue-oracle.md)
 - Manuales por rol: [Administración](docs/manuales/administrador.md), [Compras](docs/manuales/compras.md), [Bodega](docs/manuales/bodega.md), [Analista](docs/manuales/analista.md)
 - [Datos de demostración](docs/datos-demo.md)
 - [Rediseño del formulario de movimientos](docs/rediseno-formularios.md)

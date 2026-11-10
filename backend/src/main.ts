@@ -8,7 +8,9 @@ import { configureApp } from './bootstrap';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.set('trust proxy', 1);
+  // Cuántos proxies hay delante (nginx del frontend = 1; con Caddy en producción = 2). Así la
+  // IP de cada persona es la real y el límite de inicios de sesión no se comparte entre todos.
+  app.set('trust proxy', Number(process.env.TRUST_PROXY ?? 1));
   configureApp(app);
   app.enableShutdownHooks();
   const port = app.get(ConfigService).get<number>('PORT') ?? 3000;

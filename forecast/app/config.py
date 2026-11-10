@@ -53,7 +53,7 @@ def load_settings() -> Settings:
         smtp_port=int(os.getenv("SMTP_PORT", "1025")),
         smtp_user=os.getenv("SMTP_USER", ""),
         smtp_pass=os.getenv("SMTP_PASS", ""),
-        mail_from=os.getenv("MAIL_FROM", "StockSense <no-reply@stocksense.local>"),
+        mail_from=os.getenv("MAIL_FROM") or "StockSense <no-reply@stocksense.local>",
         tech_alert_emails=[e.strip() for e in os.getenv("TECH_ALERT_EMAILS", "").split(",") if e.strip()],
         frontend_url=os.getenv("FRONTEND_URL", "http://localhost:8080").rstrip("/"),
     )

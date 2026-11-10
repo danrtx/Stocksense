@@ -57,7 +57,9 @@ async function resetBusinessData() {
 }
 
 async function seedDemo() {
-  if (process.env.NODE_ENV === 'production') throw new Error('No se permite en producción.');
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_DEMO_SEED !== 'true') {
+    throw new Error('No se permite en producción. En un servidor de demostración, pon ALLOW_DEMO_SEED=true en el .env.');
+  }
   await AppDataSource.initialize();
   await AppDataSource.runMigrations();
   const db = AppDataSource;

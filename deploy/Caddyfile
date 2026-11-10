@@ -1,0 +1,11 @@
+# Caddy recibe todo el tráfico de internet, saca y renueva solo el certificado HTTPS
+# (Let's Encrypt) y se lo pasa al frontend, que a su vez manda /api a la API.
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+	header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	reverse_proxy frontend:80
+}

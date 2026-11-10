@@ -76,6 +76,8 @@ Se pasa a Google Forms (5 minutos para responder). Para las preguntas 1 a 8 se u
 
 ### Despliegue
 
+El servidor elegido es **Oracle Cloud Always Free**, con `docker-compose.prod.yml` y Caddy para el HTTPS. La guía para montarlo desde cero está en [despliegue-oracle.md](despliegue-oracle.md). En el servidor, el `.env` trae `COMPOSE_FILE=docker-compose.prod.yml`, así que los comandos de abajo usan producción sin cambiar nada.
+
 1. Anunciar la ventana: 15 minutos, fuera del horario de atención.
 2. Hacer un respaldo: `./scripts/respaldo.sh antes-de-vX`.
 3. `git pull` de la versión aprobada en staging (una etiqueta, por ejemplo `v1.0.0`).

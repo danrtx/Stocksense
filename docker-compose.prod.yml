@@ -1,0 +1,93 @@
+# StockSense en producción (un servidor con Docker, por ejemplo Oracle Cloud Always Free).
+# Guía completa: docs/despliegue-oracle.md
+#
+#   cp .env.production.example .env     # y llenarlo
+#   docker compose up -d --build        # .env trae COMPOSE_FILE=docker-compose.prod.yml
+#
+# Diferencias con docker-compose.yml (el de desarrollo):
+#  - Solo se publican los puertos 80 y 443, en Caddy, que saca el certificado HTTPS solo.
+#  - La base, la API y el servicio de pronóstico no se ven desde internet.
+#  - No hay Mailpit: los correos salen por un SMTP real (Brevo, Gmail…).
+#  - Todo se reinicia solo si el servidor se reinicia.
+name: stocksense
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-stocksense}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD en .env}
+      POSTGRES_DB: ${POSTGRES_DB:-stocksense}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-stocksense}"]
+      interval: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en .env}
+      DATABASE_URL: postgres://${POSTGRES_USER:-stocksense}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-stocksense}
+      FRONTEND_URL: https://${DOMAIN:?Falta DOMAIN en .env}
+      CORS_ORIGIN: https://${DOMAIN}
+      FORECAST_URL: http://forecast:8000
+      FORECAST_TOKEN: ${FORECAST_TOKEN:?Falta FORECAST_TOKEN en .env}
+      # El navegador llega por Caddy y luego por el nginx del frontend: 2 saltos de proxy.
+      TRUST_PROXY: 2
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-pro-preview}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  forecast:
+    build: ./forecast
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-stocksense}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-stocksense}
+      FORECAST_TOKEN: ${FORECAST_TOKEN}
+      PIPELINE_DAILY_AT: ${PIPELINE_DAILY_AT:-02:00}
+      TECH_ALERT_EMAILS: ${TECH_ALERT_EMAILS:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      FRONTEND_URL: https://${DOMAIN}
+    depends_on:
+      backend:
+        condition: service_started
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?Falta ACME_EMAIL en .env}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - frontend
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:
