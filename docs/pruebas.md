@@ -16,31 +16,31 @@ Comando: `DATABASE_URL=postgres://stocksense:stocksense@localhost:5433/stocksens
 | Autenticación | `test/auth.e2e-spec.ts` | 12 |
 | Usuarios y roles | `test/users.e2e-spec.ts` | 9 |
 | Productos | `test/products.e2e-spec.ts` | 10 |
-| Importaciones (CSV) | `test/imports.e2e-spec.ts` | 14 |
-| Inventario (stock, movimientos, transferencias, conteos) | `test/inventory.e2e-spec.ts` | 28 |
-| Compras (proveedores y órdenes) | `test/purchases.e2e-spec.ts` | 18 |
-| Sugerencias de reposición | `test/suggestions.e2e-spec.ts` | 6 |
+| Importaciones (CSV y ventas) | `test/imports.e2e-spec.ts` | 9 |
+| Inventario (stock, movimientos, transferencias, conteos) | `test/inventory.e2e-spec.ts` | 18 |
+| Compras (proveedores y órdenes) | `test/purchases.e2e-spec.ts` | 12 |
+| Sugerencias de reposición | `test/suggestions.e2e-spec.ts` | 3 |
 | Ventas por API | `test/sales-api.e2e-spec.ts` | 8 |
-| Punto de reorden, alertas y KPIs | `test/reorder-alerts-kpis.e2e-spec.ts` | 12 |
-| Panel (dashboard) | `test/dashboard.e2e-spec.ts` | 4 |
-| Pronóstico e IA | `test/forecast-ai.e2e-spec.ts` | 16 |
-| Asistente | `test/assistant.e2e-spec.ts` | 10 |
+| Punto de reorden, alertas y KPIs | `test/reorder-alerts-kpis.e2e-spec.ts` | 11 |
+| Panel (dashboard) | `test/dashboard.e2e-spec.ts` | 3 |
+| Pronóstico, precisión y explicación con IA | `test/forecast-ai.e2e-spec.ts` | 15 |
+| Asistente de ayuda | `test/assistant.e2e-spec.ts` | 10 |
 | Sprint 9 (reportes, anomalías, preguntas) | `test/sprint9.e2e-spec.ts` | 18 |
-| Sprint 10 (seguridad, roles, aprendizaje) | `test/sprint10.e2e-spec.ts` | 8 |
-| Seguridad (122 rutas × 4 roles) | `test/security.e2e-spec.ts` | 5 |
-| Validación de números (IA) | `src/forecast/number-check.spec.ts` | 4 |
-| Filtro de datos (IA) | `src/ai/data-filter.spec.ts` | 6 |
-| Roles y permisos | `src/common/auth/roles.spec.ts` | 3 |
+| Sprint 10 (aprendizaje del asistente) | `test/sprint10.e2e-spec.ts` | 4 |
+| Seguridad (rutas y permisos) | `test/security.e2e-spec.ts` | 6 |
+| Validación de números (IA) | `src/forecast/number-check.spec.ts` | 5 |
+| Filtro de datos (IA) | `src/ai/data-filter.spec.ts` | 2 |
+| Roles y permisos | `src/common/auth/roles.spec.ts` | 5 |
 | Sugerencias (unitaria) | `src/purchases/suggestions.spec.ts` | 4 |
-| Contraseñas | `src/auth/password.service.spec.ts` | 3 |
-| Auditoría | `src/audit/audit.service.spec.ts` | 3 |
-| CSV (unitaria) | `src/common/csv.spec.ts` | 3 |
+| Contraseñas | `src/auth/password.service.spec.ts` | 8 |
+| Auditoría | `src/audit/audit.service.spec.ts` | 2 |
+| CSV (unitaria) | `src/common/csv.spec.ts` | 6 |
 | Base de conocimiento | `src/assistant/knowledge.spec.ts` | 4 |
-| Datos de demostración | `src/database/seeds/demo-data.spec.ts` | 5 |
+| Datos de demostración | `src/database/seeds/demo-data.spec.ts` | 6 |
 
 **Resultado: 24 suites, 190 pruebas, todas pasaron.**
 
-Tiempo total: 74 segundos. Las pruebas corren contra PostgreSQL 16 real (no mocks de base de datos).
+Tiempo total: 112 segundos. Las pruebas corren contra PostgreSQL 16 real (no mocks de base de datos).
 
 ### Frontend (React + Vitest)
 
@@ -48,20 +48,20 @@ Comando: `npm test -- --run`
 
 | Suite | Archivo | Pruebas |
 | --- | --- | --- |
-| Rutas de autenticación | `src/test/auth-routes.test.ts` | 3 |
-| Rutas de productos | `src/test/product-routes.test.ts` | 3 |
-| Rutas de inventario | `src/test/inventory-routes.test.ts` | 4 |
-| Rutas de compras | `src/test/purchase-routes.test.ts` | 3 |
-| Rutas de ventas | `src/test/sales-routes.test.ts` | 2 |
-| Rutas de pronóstico | `src/test/forecast-routes.test.ts` | 4 |
-| Rutas de reportes | `src/test/report-routes.test.ts` | 3 |
-| Rutas de la base de conocimiento | `src/test/knowledge-routes.test.ts` | 4 |
-| Rutas del asistente | `src/test/assistant-routes.test.ts` | 3 |
-| Cobertura de rutas | `src/test/route-coverage.test.ts` | 2 |
+| Ayuda por pantalla | `src/lib/pageHelp.test.ts` | 2 |
+| Etiquetas y formato de pronóstico | `src/lib/labels.test.ts` | 3 |
+| Detalle de auditoría | `src/lib/audit.test.ts` | 2 |
+| Control de cantidad (stepper) | `src/components/form/QuantityStepper.test.tsx` | 4 |
+| Pantalla de login | `src/pages/LoginPage.test.tsx` | 3 |
+| Recorrido guiado | `src/components/GuidedTour.test.tsx` | 3 |
+| Formulario de movimientos | `src/pages/inventory/MovementFormPage.test.tsx` | 6 |
+| Exportación CSV | `src/lib/csv.test.ts` | 1 |
+| Rutas de la base de conocimiento | `src/test/knowledge-routes.test.ts` | 3 |
+| Validación de productos e invitación | `src/lib/validation.test.ts` | 4 |
 
 **Resultado: 10 suites, 31 pruebas, todas pasaron.**
 
-Tiempo total: 4 segundos. Entorno: jsdom con Vitest 5.
+Tiempo total: 6 segundos. Entorno: jsdom con Vitest 5.
 
 ### Servicio de pronóstico (Python + pytest)
 
@@ -77,9 +77,9 @@ Comando: `python -m pytest tests/ -v` (dentro del contenedor con el repositorio 
 | Programador | `tests/test_scheduler.py` | 1 | 0 |
 | Series semanales | `tests/test_series.py` | 7 | 0 |
 
-**Resultado: 8 suites, 44 pasaron, 1 saltada.** La prueba saltada (`test_health_sin_base`) solo aplica cuando no hay base de datos configurada; es complementaria de la prueba con base.
+**Resultado: 7 suites, 44 pasaron, 1 saltada.** La prueba saltada (`test_health_sin_base`) solo aplica cuando no hay base de datos configurada; es complementaria de la prueba con base.
 
-Tiempo total: 51 segundos. Las pruebas del asistente entrenan el modelo con las fichas reales del repositorio y verifican un acierto del 87 % en preguntas no vistas.
+Tiempo total: 75 segundos. Las pruebas del asistente entrenan el modelo con las fichas reales del repositorio y verifican un acierto del 85 % o más en preguntas no vistas.
 
 ### Resumen de pruebas automáticas
 
@@ -87,8 +87,8 @@ Tiempo total: 51 segundos. Las pruebas del asistente entrenan el modelo con las 
 | --- | --- | --- | --- | --- |
 | Backend (NestJS) | 24 | 190 | 0 | 0 |
 | Frontend (React) | 10 | 31 | 0 | 0 |
-| Forecast (Python) | 8 | 44 | 1 | 0 |
-| **Total** | **42** | **265** | **1** | **0** |
+| Forecast (Python) | 7 | 44 | 1 | 0 |
+| **Total** | **41** | **265** | **1** | **0** |
 
 ## Pruebas manuales
 
