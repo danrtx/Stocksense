@@ -50,6 +50,31 @@
 - Al aprobar, se crean ajustes de tipo «Conteo físico» que quedan en el kardex y en la auditoría.
 - Flujo de estados: Abierto → Enviado a revisión → Aprobado o Rechazado.
 
+### HU-15 Punto de reorden y stock de seguridad (GG-25)
+
+**Como** persona de compras,
+**quiero** definir el punto de reorden y el stock de seguridad de cada producto,
+**para** saber cuándo hay que pedir más antes de que se agote.
+
+**Criterios de aceptación:**
+
+- Se guardan y aparecen en la ficha del producto. No se aceptan valores vacíos ni negativos.
+- Edición por categoría (aplicar punto de reorden a todos los productos de una categoría).
+- Sugerencia automática con la fórmula basada en la demanda real de los últimos 90 días.
+
+### HU-16 Alertas de stock bajo (GG-26)
+
+**Como** persona de compras o bodega,
+**quiero** recibir una alerta cuando un producto está bajo el punto de reorden,
+**para** actuar antes de que se quede sin stock.
+
+**Criterios de aceptación:**
+
+- Alerta en la aplicación (campana con contador) y por correo; máximo un correo al día por producto.
+- Se cierra sola cuando el stock vuelve a estar sobre el punto de reorden.
+- Cada persona puede apagar el correo desde su perfil.
+- Una sola alerta abierta por producto (índice único en la base). Si se cierra y reabre el mismo día, no envía otro correo.
+
 ## Reglas de negocio
 
 1. **Kardex inmutable.** Los movimientos de stock no se editan ni se borran. La tabla tiene un trigger y un `CHECK` (stock ≥ 0) en la base de datos.

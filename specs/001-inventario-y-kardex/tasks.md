@@ -35,3 +35,22 @@
 - [x] Ajustes de tipo «Conteo físico» al aprobar, registrados en el kardex y la auditoría
 - [x] Pantalla de conteos con diferencias por producto
 - [x] Pruebas de integración
+
+## HU-15 Punto de reorden y stock de seguridad
+
+- [x] Campos de punto de reorden y stock de seguridad en la tabla de productos
+- [x] Validación: no vacíos ni negativos
+- [x] Edición por categoría
+- [x] Sugerencia automática basada en demanda de 90 días
+- [x] Visible en la ficha del producto
+- [x] Pruebas de integración en `reorder-alerts-kpis.e2e-spec.ts`
+
+## HU-16 Alertas de stock bajo
+
+- [x] Alerta automática cuando el stock ≤ punto de reorden
+- [x] Campana con contador en la aplicación
+- [x] Notificación por correo (máximo una al día por producto)
+- [x] Cierre automático cuando el stock se recupera
+- [x] Índice único: una alerta abierta por producto
+- [x] Opción para desactivar correos por persona
+- [x] Pruebas de integración en `reorder-alerts-kpis.e2e-spec.ts`

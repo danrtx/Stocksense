@@ -27,6 +27,19 @@
 - Auditoría con fecha y autor de cada cambio (creación, cambio de rol con valor anterior y nuevo, desactivación).
 - Siempre debe quedar al menos un Administrador activo. Nadie puede desactivarse a sí mismo.
 
+### HU-03 Entorno base y despliegue continuo (GG-13)
+
+**Como** equipo de desarrollo,
+**quiero** un entorno automatizado con Docker y CI/CD,
+**para** que cualquier persona pueda levantar el proyecto y los cambios se validen automáticamente.
+
+**Criterios de aceptación:**
+
+- `docker compose up --build` levanta todo el sistema (API, frontend, base de datos, Mailpit y servicio de pronóstico).
+- CI en GitHub Actions: escaneo de secretos, lint, verificación de tipos, pruebas con cobertura y build en cada push y PR.
+- Un PR con CI fallido no se puede fusionar (protección de ramas).
+- Deploy automático a staging al fusionar en `main`.
+
 ### HU-04 Crear, editar y buscar productos (GG-14)
 
 **Como** persona de compras o administrador,

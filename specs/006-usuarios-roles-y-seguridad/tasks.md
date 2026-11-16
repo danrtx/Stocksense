@@ -1,5 +1,14 @@
 # Tareas — 006 Usuarios, roles, catálogo y seguridad
 
+## HU-03 Entorno base y despliegue continuo
+
+- [x] Docker Compose con todos los servicios (`docker-compose.yml`)
+- [x] CI en GitHub Actions (`ci.yml`): secretos, lint, tipos, pruebas, build
+- [x] Workflow de deploy a staging (`deploy-staging.yml`)
+- [ ] GG-48 Validar `docker compose up --build` en equipo con Docker Desktop — **pendiente en sprint 1**
+- [ ] GG-49 Crear repositorio en GitHub y activar protección de ramas — **completado**
+- [ ] GG-50 Elegir proveedor de staging y configurar secretos — **pendiente**
+
 ## HU-01 Iniciar sesión de forma segura
 
 - [x] Login con correo y contraseña, JWT + sesión en servidor
