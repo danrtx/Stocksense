@@ -1,8 +1,23 @@
 # StockSense
 
-Sistema de gestión de inventario con predicción de demanda (proyecto GestionInv_GP, clave Jira **GG**).
+Sistema web de gestión de inventario con predicción de demanda para pequeñas empresas. Proyecto GestionInv_GP (clave Jira **GG**).
 
-Este repositorio contiene los **sprints 1 a 8**: acceso seguro, usuarios y roles, auditoría, catálogo (con importación CSV), bodegas y stock, movimientos, transferencias, conteos físicos, proveedores, órdenes de compra y recepción, historial de ventas, API para el punto de venta, puntos de reorden, alertas de stock bajo, KPIs, pronóstico de demanda con su precisión y reentrenamiento semanal, sugerencias de compra, explicación del pronóstico con Gemini y un asistente de ayuda con modelo propio y respaldo de Gemini.
+## Requisitos
+
+| Requisito | Versión mínima | Para qué |
+| --- | --- | --- |
+| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | 4.x | Levantar todo con un comando |
+| Git | 2.x | Clonar el repositorio |
+
+Sin Docker (para programar):
+
+| Requisito | Versión mínima |
+| --- | --- |
+| Node.js | 22 |
+| PostgreSQL | 16 |
+| Python | 3.12 (solo si se quiere el servicio de pronóstico local) |
+
+Este repositorio contiene los **sprints 1 a 10** (36 historias de usuario): acceso seguro, usuarios y roles con auditoría, catálogo con importación CSV, bodegas y stock (kardex inmutable), movimientos, transferencias en dos pasos, conteos físicos, proveedores, órdenes de compra y recepción parcial, historial de ventas y API para el punto de venta, puntos de reorden, alertas de stock bajo, dashboard con KPIs, pronóstico de demanda (SES, Holt, Croston) con precisión y reentrenamiento semanal, sugerencias de compra, explicación del pronóstico con Gemini, asistente de ayuda con modelo propio y respaldo de Gemini, preguntas al inventario en lenguaje natural (function calling), detección de anomalías (3σ), reportes Excel y PDF, aprendizaje del asistente con el uso, recorrido guiado y ayuda por pantalla.
 
 | Parte | Tecnología | Carpeta |
 | --- | --- | --- |
@@ -36,6 +51,26 @@ Entra con el administrador que definiste en `.env` (por defecto `admin@stocksens
 ¿Quieres verlo con datos? Con todo encendido, en otra terminal: `docker compose exec backend npm run seed:reset`. Borra los datos del inventario (no las cuentas de usuario) y carga una ferretería de Pasto de demostración: 68 productos en 9 categorías, 3 bodegas, 6 proveedores, 18 meses de ventas con temporadas, quincenas y festivos, y 5 meses de kardex con compras, transferencias, conteos físicos y alertas. Crea una cuenta por rol: `marta@demo.co` Compras, `bruno@demo.co` Bodega y `lina@demo.co` Analista, todas con la clave `ClaveSegura2026`. También pide un reentrenamiento: en uno o dos minutos aparecen el pronóstico y las anomalías sin pulsar nada. `npm run seed:demo` hace lo mismo solo si no hay datos; si ya los hay, completa las ventas que falten hasta ayer. Detalle en [docs/datos-demo.md](docs/datos-demo.md).
 
 Para apagar todo: `Ctrl + C` y luego `docker compose down`. Para borrar también la base de datos: `docker compose down -v`.
+
+### Variables de entorno
+
+Todas se configuran en `.env` (copiado de `.env.example`). Nunca pongas valores reales en el repositorio.
+
+| Variable | Qué hace | Valor por defecto en el ejemplo |
+| --- | --- | --- |
+| `POSTGRES_USER` / `PASSWORD` / `DB` | Credenciales de la base de datos | `stocksense` |
+| `DB_PORT` | Puerto de PostgreSQL en tu equipo | `5433` |
+| `API_PORT` | Puerto de la API | `3000` |
+| `WEB_PORT` | Puerto de la aplicación web | `8080` |
+| `JWT_SECRET` | Secreto para firmar los tokens de sesión | (generar uno nuevo) |
+| `SESSION_IDLE_MINUTES` | Minutos de inactividad antes de cerrar la sesión | `30` |
+| `LOGIN_MAX_ATTEMPTS` | Intentos de login antes del bloqueo | `5` |
+| `LOGIN_LOCK_MINUTES` | Minutos de bloqueo por intentos fallidos | `15` |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Primer administrador | `admin@stocksense.local` |
+| `FORECAST_TOKEN` | Token interno entre la API y el servicio de pronóstico | (generar uno nuevo) |
+| `PIPELINE_DAILY_AT` | Hora diaria para preparar los datos del modelo (Bogotá) | `02:00` |
+| `GEMINI_API_KEY` | Clave de la API de Gemini (opcional) | (vacío) |
+| `GEMINI_MODEL` | Modelo de Gemini a utilizar | `gemini-3.1-pro-preview` |
 
 ### Si aparece "Falta JWT_SECRET" o "Configuración inválida"
 
@@ -144,24 +179,82 @@ forecast/          servicio Python: series semanales, modelos de pronóstico, co
 docs/              decisiones, roles y ambientes
 ```
 
+## Flujo de demostración
+
+Después de levantar Docker y cargar los datos de demostración (`docker compose exec backend npm run seed:reset`), prueba este recorrido:
+
+1. **Entrar como administrador** (`admin@stocksense.local` / `CambiaEsta2026`). Se abre el panel con el recorrido guiado y los KPIs del inventario.
+2. **Inventario › Stock actual:** ver los 68 productos con su stock por bodega.
+3. **Inventario › Registrar entrada o salida:** registrar una salida de «Alambre galvanizado» desde Bodega principal. Intentar sacar más del stock disponible y ver el rechazo.
+4. **Compras › Sugerencias:** ver las sugerencias de reposición con la fórmula de cada una. Crear un borrador con un clic.
+5. **Pronóstico › Resumen:** ver la precisión general y el pronóstico por producto. Abrir el gráfico de un producto.
+6. **Reportes › Exportar reportes:** elegir «Stock valorizado», cambiar los filtros y descargar el Excel.
+7. **Reportes › Anomalías:** revisar los casos sembrados (cemento, chazo, pintura).
+8. **Ayuda (botón abajo a la derecha):** preguntar «¿Cómo registro una salida?» y ver los pasos con enlace a la pantalla.
+9. **Cerrar sesión y entrar como `bruno@demo.co` (Bodega):** verificar que no aparecen Reportes, Pronóstico ni Ventas. Intentar acceder a /reportes por URL y ver «Acceso denegado».
+
+## Decisiones principales
+
+| Decisión | Por qué | Detalle |
+| --- | --- | --- |
+| Stock inmutable (kardex) | Cada movimiento es un registro que no se puede editar ni borrar: la base tiene un trigger que lo impide y un `CHECK (stock >= 0)` | [sprints-2-a-5.md](docs/sprints-2-a-5.md) |
+| Un solo servicio de stock (`StockLedger`) | Todas las operaciones (entradas, salidas, transferencias, ajustes) pasan por un punto que bloquea la fila con `SELECT ... FOR UPDATE` | [sprints-2-a-5.md](docs/sprints-2-a-5.md) |
+| Pronóstico propio en numpy (sin Prophet) | Más preciso y unas 1.000 veces más rápido en los datos de prueba | [pronostico-e-ia.md](docs/pronostico-e-ia.md) |
+| Cola de trabajos en PostgreSQL (`ml_jobs`) | No hace falta otro servicio; `FOR UPDATE SKIP LOCKED` evita duplicados | [sprints-6-a-8.md](docs/sprints-6-a-8.md) |
+| Gemini solo desde la API | La clave, los límites, el filtro de datos y el registro de consumo viven en un solo lugar | [sprints-6-a-8.md](docs/sprints-6-a-8.md) |
+| Asistente funciona sin Gemini | El modelo propio acierta el 87 % de las preguntas; sin clave o sin cupo, sugiere fichas cercanas | [sprints-6-a-8.md](docs/sprints-6-a-8.md) |
+| 4 roles, 19 permisos | Admin (todos), Compras, Bodega, Analista. Cada ruta de la API valida el permiso | [roles-y-permisos.md](docs/roles-y-permisos.md) |
+| Sesiones en servidor + JWT | Permite cerrar la sesión de verdad desde el servidor | [sprint-1.md](docs/sprint-1.md) |
+
+## Pendientes
+
+- [ ] Grabar el video del recorrido guiado (guion en [guion-video.md](docs/guion-video.md), menos de 3 minutos)
+- [ ] Revisión de los manuales por una persona de cada rol
+- [ ] Piloto de 5 a 10 personas durante 5 días (plan en [piloto-y-lanzamiento.md](docs/piloto-y-lanzamiento.md))
+- [ ] Evaluación con Gemini real: `npm run eval:data-chat` (20 preguntas) y descripción de anomalías
+- [ ] Prueba de uso en celular del formulario de movimientos (T-07.3)
+- [ ] Aprobación de las fórmulas de KPIs por la dueña del producto (T-27.1)
+
 ## Documentación
 
-- [Roles y permisos](docs/roles-y-permisos.md)
-- [Ambientes, secretos y despliegue](docs/ambientes.md)
+### Especificaciones (SDD — Spec-Driven Development)
+
+- [Constitución del proyecto](.specify/memory/constitution.md)
+- [Inventario y kardex](specs/001-inventario-y-kardex/)
+- [Compras y sugerencias](specs/002-compras-y-sugerencias/)
+- [Ventas y pronóstico](specs/003-ventas-y-pronostico/)
+- [Asistente e IA](specs/004-asistente-e-ia/)
+- [Reportes y anomalías](specs/005-reportes-y-anomalias/)
+- [Usuarios, roles y seguridad](specs/006-usuarios-roles-y-seguridad/)
+
+### Verificación
+
+- [Registro de pruebas](docs/pruebas.md) — 265 automáticas y 10 manuales
+
+### Entregas por sprint
+
 - [Entrega del Sprint 1](docs/sprint-1.md)
 - [Entrega de los sprints 2 a 5](docs/sprints-2-a-5.md)
 - [Entrega de los sprints 6 a 8](docs/sprints-6-a-8.md)
-- [Entrega del sprint 9: reportes, anomalías y preguntas al inventario](docs/sprint-9.md)
-- [Entrega del sprint 10: calidad, ayuda, aprendizaje del asistente y lanzamiento](docs/sprint-10.md)
-- [Rendimiento, seguridad y respaldos](docs/rendimiento-y-seguridad.md)
-- [Piloto y salida a producción](docs/piloto-y-lanzamiento.md)
-- [Despliegue gratis en Oracle Cloud](docs/despliegue-oracle.md)
-- Manuales por rol: [Administración](docs/manuales/administrador.md), [Compras](docs/manuales/compras.md), [Bodega](docs/manuales/bodega.md), [Analista](docs/manuales/analista.md)
-- [Datos de demostración](docs/datos-demo.md)
-- [Rediseño del formulario de movimientos](docs/rediseno-formularios.md)
+- [Entrega del sprint 9](docs/sprint-9.md)
+- [Entrega del sprint 10](docs/sprint-10.md)
+
+### Referencia técnica
+
+- [Roles y permisos](docs/roles-y-permisos.md)
 - [Pronóstico, Gemini y asistente: cómo funcionan](docs/pronostico-e-ia.md)
 - [Fórmulas de los KPIs](docs/kpis.md)
+- [Ambientes, secretos y despliegue](docs/ambientes.md)
+- [Despliegue gratis en Oracle Cloud](docs/despliegue-oracle.md)
+- [Rendimiento, seguridad y respaldos](docs/rendimiento-y-seguridad.md)
+- [Datos de demostración](docs/datos-demo.md)
 - [Servicio de pronóstico](forecast/README.md)
+
+### Operación
+
+- [Piloto y salida a producción](docs/piloto-y-lanzamiento.md)
+- Manuales por rol: [Administración](docs/manuales/administrador.md), [Compras](docs/manuales/compras.md), [Bodega](docs/manuales/bodega.md), [Analista](docs/manuales/analista.md)
+- [Rediseño del formulario de movimientos](docs/rediseno-formularios.md)
 
 ## Cómo trabajar en equipo
 
